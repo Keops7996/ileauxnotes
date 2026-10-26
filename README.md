@@ -7,7 +7,7 @@ Jeu d'entraînement musical pour toute la famille : violoncelle, piano et guitar
 - Profils par musicien (avatar, couleur, un ou plusieurs instruments), points (total et de la semaine), étoiles, rangs et badges.
 - Duo : deux musiciens à l'écran, chacun son tour ou ensemble.
 - Éditeur pour entrer ses propres partitions, partagées par toute la famille.
-- Réglages (roue dentée du menu, protégés par un petit calcul) : historique des performances, ajout ou retrait d'une performance, remise à zéro des scores avec confirmation.
+- Réglages (roue dentée du menu, protégés par un petit calcul) : historique des performances, ajout ou retrait d'une performance, remise à zéro des scores avec confirmation, sauvegarde dans un fichier et synchronisation avec un dépôt GitHub privé.
 
 ## Jouer
 
@@ -19,3 +19,11 @@ Tout tient dans `index.html` (aucune installation). Pour utiliser le micro, la p
 4. Pour la télé : recopie de l'écran via AirPlay.
 
 Les profils et les scores sont enregistrés dans le navigateur de l'appareil.
+
+## Sauvegarde privée sur GitHub (optionnel)
+
+1. Créer un dépôt **privé** vide, par exemple `ileauxnotes-data`.
+2. Créer un jeton : GitHub → Settings → Developer settings → Personal access tokens → **Fine-grained tokens** → *Generate new token* ; *Repository access* : uniquement `ileauxnotes-data` ; *Permissions* → *Contents* : **Read and write**.
+3. Dans l'app : roue dentée → Sauvegarde → dépôt `Keops7996/ileauxnotes-data` + jeton → **Connecter**. À faire une fois sur chaque appareil de la famille.
+
+La progression est alors envoyée après chaque partie et récupérée à l'ouverture de l'app.

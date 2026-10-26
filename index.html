@@ -113,7 +113,6 @@ p{margin:0}
 .pager{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .addgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .addgrid .field:first-child{grid-column:1 / -1}
-.danger{margin-top:auto;border-top:1px solid var(--deck-2);padding-top:10px;display:flex;flex-direction:column;gap:8px}
 .setgate{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--sea);z-index:2}
 .setgate .box{background:var(--deck);border-radius:18px;padding:20px;width:100%;max-width:340px;display:flex;flex-direction:column;gap:10px}
 .setgate input{background:#0b2233;border:1px solid var(--deck-2);border-radius:10px;padding:10px 12px;font-size:1.3rem;color:var(--foam);text-align:center}
@@ -121,6 +120,9 @@ p{margin:0}
 .gear{position:absolute;top:max(10px,env(safe-area-inset-top,0px));right:max(14px,env(safe-area-inset-right,0px));width:46px;height:46px;border-radius:50%;background:var(--deck);display:grid;place-items:center;color:var(--mist)}
 #profiles{position:relative}
 @media (orientation:portrait) and (max-width:700px){.setbody{grid-template-columns:1fr;grid-template-rows:1fr auto}}
+.pane{display:flex;flex-direction:column;gap:10px;min-height:0}
+.ghbox{border-top:1px solid var(--deck-2);padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.ghbox .addgrid .field:first-child{grid-column:auto}
 .seg3{grid-template-columns:repeat(3,1fr)}
 .av{width:40px;height:40px;border-radius:50%;display:inline-grid;place-items:center;font-size:1.4rem;background:var(--gold);flex:none;box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
 .av.big{width:84px;height:84px;font-size:2.8rem}
@@ -399,16 +401,31 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
       <div class="pager"><button class="btn ghost small" id="histPrev" aria-label="Page précédente">‹ Plus récent</button><span class="small muted" id="histPage"></span><button class="btn ghost small" id="histNext" aria-label="Page suivante">Plus ancien ›</button></div>
     </div>
     <div class="setcol">
-      <h3>Ajouter une performance</h3>
-      <div class="addgrid">
-        <div class="field"><label class="label" for="addWhat">Activité</label><input id="addWhat" maxlength="40" placeholder="Cours, concert, entraînement libre…"></div>
-        <div class="field"><label class="label" for="addDate">Date</label><input id="addDate" type="date"></div>
-        <div class="field"><label class="label" for="addMin">Minutes</label><input id="addMin" type="number" min="0" max="600" value="15" inputmode="numeric"></div>
-        <div class="field"><label class="label" for="addPts">Points</label><input id="addPts" type="number" min="0" max="5000" value="20" inputmode="numeric"></div>
+      <div class="seg seg3" id="setTabs"><button data-v="add" class="on">Ajouter</button><button data-v="bak">Sauvegarde</button><button data-v="rst">Remise à zéro</button></div>
+      <div class="pane" id="paneAdd">
+        <div class="addgrid">
+          <div class="field"><label class="label" for="addWhat">Activité</label><input id="addWhat" maxlength="40" placeholder="Cours, concert, entraînement libre…"></div>
+          <div class="field"><label class="label" for="addDate">Date</label><input id="addDate" type="date"></div>
+          <div class="field"><label class="label" for="addMin">Minutes</label><input id="addMin" type="number" min="0" max="600" value="15" inputmode="numeric"></div>
+          <div class="field"><label class="label" for="addPts">Points</label><input id="addPts" type="number" min="0" max="5000" value="20" inputmode="numeric"></div>
+        </div>
+        <div class="row"><button class="btn" id="addBtn">Ajouter la performance</button><span class="small" id="addMsg"></span></div>
       </div>
-      <div class="row"><button class="btn" id="addBtn">Ajouter</button><span class="small" id="addMsg"></span></div>
-      <div class="danger">
-        <div><b>Remise à zéro</b><p class="small muted">Efface points, étoiles, badges et historique. Le profil et ses réglages restent.</p></div>
+      <div class="pane" id="paneBak" hidden>
+        <div class="row"><button class="btn small" id="bakSave">Sauvegarder dans un fichier</button><button class="btn ghost small" id="bakLoad">Restaurer un fichier</button><input type="file" id="bakFile" accept=".json,application/json" hidden></div>
+        <p class="small" id="bakMsg"></p>
+        <div class="ghbox">
+          <b>Sauvegarde GitHub privée</b>
+          <div class="addgrid">
+            <div class="field"><label class="label" for="ghRepo">Dépôt privé</label><input id="ghRepo" placeholder="Keops7996/ileauxnotes-data" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+            <div class="field"><label class="label" for="ghTok">Jeton d'accès</label><input id="ghTok" type="password" placeholder="github_pat_…" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+          </div>
+          <div class="row"><button class="btn small" id="ghOn">Connecter</button><button class="btn ghost small" id="ghPush">Envoyer</button><button class="btn ghost small" id="ghPull">Récupérer</button><button class="btn ghost small" id="ghOff">Déconnecter</button></div>
+          <p class="small muted" id="ghMsg">Synchronise toute la progression avec un dépôt GitHub privé, à chaque partie.</p>
+        </div>
+      </div>
+      <div class="pane" id="paneRst" hidden>
+        <p class="muted">Efface points, étoiles, badges, historique et série de jours. Les profils, les instruments et les partitions restent.</p>
         <div class="row"><button class="btn danger small" id="rstOne">Ce musicien</button><button class="btn danger small" id="rstAll">Toute la famille</button></div>
       </div>
     </div>
@@ -574,11 +591,11 @@ try{const raw=localStorage.getItem(KEY);if(raw){const o=JSON.parse(raw);
 DB.duo=Object.assign({sel:[],kind:'relay',mode:'wait',input:'tap',metro:true,pct:.75},DB.duo||{});
 DB.profiles.forEach(p=>{p.insts=(p.insts&&p.insts.length)?p.insts:[p.inst||'cello'];if(!p.insts.includes(p.inst))p.inst=p.insts[0];p.set=Object.assign({...DEF_SET,pct:{}},p.set||{});});
 let S=DB.profiles.find(p=>p.id===DB.active)||newProfile();
-function save(){try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}}
+function save(bump=true){if(bump)DB.savedAt=Date.now();try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}if(bump){try{schedulePush();}catch(e){}}}
 function weekKey(d=new Date()){const x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7));return today(x);}
 function weekPts(p){const k=weekKey();if(!p.week||p.week.k!==k){const lw=new Date();lw.setDate(lw.getDate()-7);const prev=p.week&&p.week.k===weekKey(lw)?p.week.pts:0;p.week={k,pts:0,prev};}return p.week;}
 function shade(h,k){const n=parseInt(h.slice(1),16);const f=x=>Math.round(x*k).toString(16).padStart(2,'0');return'#'+f(n>>16)+f((n>>8)&255)+f(n&255);}
-function applyProfile(p){S=p;DB.active=p.id;INST=INSTS[p.inst]||INSTS.cello;const r=document.documentElement.style;r.setProperty('--gold',p.color);r.setProperty('--gold-2',shade(p.color,.75));save();}
+function applyProfile(p){S=p;DB.active=p.id;INST=INSTS[p.inst]||INSTS.cello;const r=document.documentElement.style;r.setProperty('--gold',p.color);r.setProperty('--gold-2',shade(p.color,.75));save(false);}
 function today(d=new Date()){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function yesterday(){const d=new Date();d.setDate(d.getDate()-1);return today(d);}
 INST=INSTS[S.inst]||INSTS.cello;
@@ -976,6 +993,49 @@ function askReset(all){const p=setP();SET.rstAll=all;$('#rstTitle').textContent=
 $('#rstOne').onclick=()=>askReset(false);$('#rstAll').onclick=()=>askReset(true);$('#rstNo').onclick=()=>{$('#rstOv').hidden=true;};
 $('#rstYes').onclick=()=>{if(SET.rstAll)DB.profiles.forEach(resetProfile);else{const p=setP();if(p)resetProfile(p);}save();$('#rstOv').hidden=true;SET.page=0;renderSettings();};
 
+/* ---------- sauvegarde & GitHub ---------- */
+const SYNCK='ile-aux-notes-sync';let SYNC={};try{SYNC=JSON.parse(localStorage.getItem(SYNCK)||'{}')||{};}catch(e){SYNC={};}
+function saveSync(){try{localStorage.setItem(SYNCK,JSON.stringify(SYNC));}catch(e){}}
+function exportJSON(){return JSON.stringify({app:'ile-aux-notes',v:1,savedAt:DB.savedAt||Date.now(),db:DB});}
+function importObj(o){const db=o&&o.db?o.db:o;if(!db||!Array.isArray(db.profiles))throw new Error('format');
+  DB=Object.assign({profiles:[],active:null,custom:[],duo:null},db);DB.duo=Object.assign({sel:[],kind:'relay',mode:'wait',input:'tap',metro:true,pct:.75},DB.duo||{});
+  DB.profiles.forEach(p=>{p.insts=(p.insts&&p.insts.length)?p.insts:[p.inst||'cello'];if(!p.insts.includes(p.inst))p.inst=p.insts[0];p.set=Object.assign({...DEF_SET,pct:{}},p.set||{});});
+  S=DB.profiles.find(p=>p.id===DB.active)||DB.profiles[0]||newProfile();if(DB.profiles.length)applyProfile(S);else save();}
+function msg(id,t,ok){const el=$(id);el.textContent=t;el.style.color=ok===false?'var(--coral)':ok?'var(--kelp)':'var(--mist)';}
+$('#setTabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;setSeg($('#setTabs'),b.dataset.v);$('#paneAdd').hidden=b.dataset.v!=='add';$('#paneBak').hidden=b.dataset.v!=='bak';$('#paneRst').hidden=b.dataset.v!=='rst';
+  $('#ghRepo').value=SYNC.repo||'';$('#ghTok').value=SYNC.token?'••••••••':'';ghStatus();};
+$('#bakSave').onclick=async()=>{const name='ile-aux-notes-sauvegarde-'+today()+'.json',data=exportJSON();
+  try{const f=new File([data],name,{type:'application/json'});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'Sauvegarde L’Île aux Notes'});msg('#bakMsg','Sauvegarde prête : choisis « Enregistrer dans Fichiers ».',true);return;}}catch(e){if(e&&e.name==='AbortError')return;}
+  try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);msg('#bakMsg','Fichier '+name+' enregistré.',true);}
+  catch(e){msg('#bakMsg','Ce navigateur bloque le téléchargement. Ouvre le jeu depuis son adresse web.',false);}};
+$('#bakLoad').onclick=()=>{const b=$('#bakLoad');if(!b.dataset.c){b.dataset.c='1';b.textContent='Remplacer les données actuelles ?';setTimeout(()=>{b.dataset.c='';b.textContent='Restaurer un fichier';},4000);return;}b.dataset.c='';b.textContent='Restaurer un fichier';$('#bakFile').click();};
+$('#bakFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{importObj(JSON.parse(r.result));msg('#bakMsg','Sauvegarde restaurée : '+DB.profiles.length+' musicien(s).',true);SET.pid=S.id;renderSettings();}catch(err){msg('#bakMsg','Ce fichier n\'est pas une sauvegarde de L’Île aux Notes.',false);}e.target.value='';};r.readAsText(f);};
+function ghStatus(){if(SYNC.repo&&SYNC.token)msg('#ghMsg','Connecté à '+SYNC.repo+(SYNC.last?' · dernière synchro '+new Date(SYNC.last).toLocaleString('fr-BE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):''),true);else msg('#ghMsg','Synchronise toute la progression avec un dépôt GitHub privé, à chaque partie.');}
+const GHFILE='sauvegarde.json';
+async function gh(method,path,body){const r=await fetch('https://api.github.com/repos/'+SYNC.repo+path,{method,headers:{Authorization:'Bearer '+SYNC.token,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:body?JSON.stringify(body):undefined,cache:'no-store'});
+  if(r.status===404&&method==='GET'&&path.startsWith('/contents'))return null;if(!r.ok){const e=new Error('http '+r.status);e.status=r.status;throw e;}return r.json();}
+const b64e=t=>{const u=new TextEncoder().encode(t);let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return btoa(s);};
+const b64d=b=>new TextDecoder().decode(Uint8Array.from(atob(b.replace(/\s/g,'')),c=>c.charCodeAt(0)));
+function ghErr(e){return e&&e.status===401?'Jeton refusé : vérifie qu\'il est valide et non expiré.':e&&(e.status===403||e.status===404)?'Accès refusé au dépôt : vérifie son nom et les droits « Contents : lecture et écriture » du jeton.':'Pas de connexion à GitHub pour le moment.';}
+async function ghPull(apply){const f=await gh('GET','/contents/'+GHFILE);if(!f)return{none:true};SYNC.sha=f.sha;saveSync();const o=JSON.parse(b64d(f.content));
+  if(apply==='force'||((o.savedAt||0)>(DB.savedAt||0))){importObj(o);DB.savedAt=o.savedAt;try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}return{loaded:true};}return{older:true};}
+let PUSHING=false,PUSH_T=null;
+async function ghPush(){if(!SYNC.repo||!SYNC.token||PUSHING)return;PUSHING=true;try{const body={message:'Sauvegarde du '+new Date().toLocaleString('fr-BE'),content:b64e(exportJSON())};if(SYNC.sha)body.sha=SYNC.sha;
+    let r;try{r=await gh('PUT','/contents/'+GHFILE,body);}catch(e){if(e.status===409||e.status===422){const f=await gh('GET','/contents/'+GHFILE);if(f)body.sha=f.sha;else delete body.sha;r=await gh('PUT','/contents/'+GHFILE,body);}else throw e;}
+    SYNC.sha=r.content.sha;SYNC.last=Date.now();saveSync();return true;}finally{PUSHING=false;}}
+function schedulePush(){if(!SYNC.repo||!SYNC.token)return;clearTimeout(PUSH_T);PUSH_T=setTimeout(()=>{ghPush().catch(()=>{});},4000);}
+$('#ghOn').onclick=async()=>{const repo=$('#ghRepo').value.trim().replace(/^https?:\/\/github\.com\//,'').replace(/\.git$/,'').replace(/\/$/,'');const tok=$('#ghTok').value.trim();
+  if(!/^[\w.-]+\/[\w.-]+$/.test(repo)){msg('#ghMsg','Écris le dépôt sous la forme propriétaire/nom.',false);return;}
+  if(!tok||tok.startsWith('•')){if(!SYNC.token){msg('#ghMsg','Colle le jeton d\'accès GitHub.',false);return;}}else SYNC.token=tok;
+  SYNC.repo=repo;msg('#ghMsg','Connexion…');
+  try{const info=await gh('GET','');if(!info.private){msg('#ghMsg','Ce dépôt est public : choisis un dépôt privé pour garder vos données pour vous.',false);SYNC.token=null;saveSync();return;}
+    saveSync();const r=await ghPull('force');if(r.loaded){SET.pid=S.id;renderSettings();msg('#ghMsg','Connecté. Progression récupérée depuis GitHub.',true);}else{await ghPush();ghStatus();}$('#ghTok').value='••••••••';}
+  catch(e){msg('#ghMsg',ghErr(e),false);}};
+$('#ghPush').onclick=async()=>{if(!SYNC.token){msg('#ghMsg','Connecte d\'abord un dépôt.',false);return;}try{await ghPush();ghStatus();}catch(e){msg('#ghMsg',ghErr(e),false);}};
+$('#ghPull').onclick=async()=>{if(!SYNC.token){msg('#ghMsg','Connecte d\'abord un dépôt.',false);return;}const b=$('#ghPull');if(!b.dataset.c){b.dataset.c='1';b.textContent='Remplacer par GitHub ?';setTimeout(()=>{b.dataset.c='';b.textContent='Récupérer';},4000);return;}b.dataset.c='';b.textContent='Récupérer';
+  try{const r=await ghPull('force');if(r.none)msg('#ghMsg','Aucune sauvegarde sur GitHub pour l\'instant.',false);else{SET.pid=S.id;renderSettings();msg('#ghMsg','Progression récupérée depuis GitHub.',true);}}catch(e){msg('#ghMsg',ghErr(e),false);}};
+$('#ghOff').onclick=()=>{SYNC={};saveSync();$('#ghRepo').value='';$('#ghTok').value='';msg('#ghMsg','Déconnecté. Le jeton a été effacé de cet appareil.',true);};
+
 /* ---------- duo ---------- */
 function renderDuo(){const D=DB.duo;D.sel=D.sel.filter(id=>DB.profiles.some(p=>p.id===id));$('#duoNotice').hidden=true;
   const pk=$('#duoPick');pk.innerHTML='';DB.profiles.forEach(p=>{const b=document.createElement('button');const i=D.sel.indexOf(p.id);if(i>=0)b.className='on';
@@ -1027,9 +1087,9 @@ $('#peInst').onclick=e=>{const b=e.target.closest('button');if(!b)return;const v
 $('#peBack').onclick=()=>show(DB.profiles.length?'profiles':'home');
 $('#peSave').onclick=()=>{const name=$('#peName').value.trim();if(!name){$('#peErr').hidden=false;$('#peErr').textContent='Écris un prénom pour ce musicien.';$('#peName').focus();return;}
   const insts=['cello','piano','guitar'].filter(i=>PE.insts.includes(i));let p=PE.p;if(p){Object.assign(p,{name,avatar:PE.avatar,color:PE.color,insts,inst:insts.includes(p.inst)?p.inst:insts[0]});}else{p=newProfile({name,avatar:PE.avatar,color:PE.color,insts,inst:insts[0]});DB.profiles.push(p);}
-  applyProfile(p);show('home');};
+  applyProfile(p);save();show('home');};
 $('#peDel').onclick=()=>{const b=$('#peDel');if(!b.dataset.c){b.dataset.c='1';b.textContent='Sûr ? Ses étoiles et son trésor seront perdus. Toucher encore';setTimeout(()=>{b.dataset.c='';b.textContent='Supprimer ce musicien';},4000);return;}
-  DB.profiles=DB.profiles.filter(x=>x!==PE.p);if(DB.active===PE.p.id)applyProfile(DB.profiles[0]);else save();show('profiles');};
+  DB.profiles=DB.profiles.filter(x=>x!==PE.p);if(DB.active===PE.p.id)applyProfile(DB.profiles[0]);save();show('profiles');};
 
 /* ---------- éditeur ---------- */
 let ED=null;
@@ -1067,7 +1127,8 @@ $('#edSave').onclick=()=>{edMeta();const err=$('#edErr');if(!ED.title){err.hidde
   const song={id:ED.id||('c'+Date.now()),title:ED.title,bpm:ED.bpm,bpb:ED.bpb,pickup:ED.pickup,notes:ED.notes.map(n=>({m:n.m,d:n.d})),custom:true,inst:(ED.id&&songById(ED.id)&&songById(ED.id).inst)||INST.id};
   song.by=(songById(song.id)&&songById(song.id).by)||S.name;award('compo');const i=DB.custom.findIndex(x=>x.id===song.id);if(i>=0){DB.custom[i]=song;}else DB.custom.push(song);save();stopListen();CUR=song;show('songScr');};
 
-(function boot(){if(!DB.profiles.length){openProfEdit(null,true);return;}applyProfile(S);show('profiles');})();
+(function boot(){const go=()=>{if(!DB.profiles.length){openProfEdit(null,true);return;}applyProfile(S);show('profiles');};go();
+  if(SYNC.repo&&SYNC.token)ghPull().then(r=>{if(r&&r.loaded){go();banner('Progression synchronisée');}}).catch(()=>{});})();
 })();
 </script>
 </body></html>
