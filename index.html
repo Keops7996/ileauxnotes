@@ -25,7 +25,11 @@
   --r:14px;
   color-scheme:dark;
 }
+[hidden]{display:none!important}
+*,*::before,*::after{box-sizing:border-box}
 html,body,#app{height:100%}
+body{margin:0}
+img{max-width:100%}
 body{background:var(--sea);background-image:radial-gradient(120% 60% at 50% -10%, #1b4566 0%, var(--sea) 60%);background-attachment:fixed;color:var(--foam);font-family:var(--f-body);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
 button,input,textarea,select{font:inherit;color:inherit}
 button{cursor:pointer;border:0;background:none}
