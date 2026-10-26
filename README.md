@@ -4,7 +4,7 @@ Jeu d'entraînement musical pour toute la famille : violoncelle, piano et guitar
 
 - Les notes tombent dans les couloirs des cordes (ou des touches) ; le micro écoute l'instrument, ou on joue au toucher.
 - Modes Entraînement (le jeu attend la bonne note) et Défi (en rythme), tempo réglable, métronome.
-- Profils par musicien (avatar, couleur, un ou plusieurs instruments), points de la semaine, étoiles, rangs et badges.
+- Profils par musicien (avatar, couleur, un ou plusieurs instruments), points (total et de la semaine), étoiles, rangs et badges.
 - Duo : deux musiciens à l'écran, chacun son tour ou ensemble.
 - Éditeur pour entrer ses propres partitions, partagées par toute la famille.
 
