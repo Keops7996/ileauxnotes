@@ -637,10 +637,10 @@ function playNotes(notes,bpm,done){stopListen();const a=ac();const g=a.createGai
 
 /* ---------- micro & détection de hauteur ---------- */
 const MIC={ok:false,tried:false,an:null,buf:null,sr:44100,midi:null,mf:0,cents:0,freq:0,rms:0,stable:0,lastRound:null,last:0,seq:0};
-async function startMic(){if(MIC.ok)return true;try{if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('no');
+async function startMic(){if(MIC.ok)return true;try{if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){MIC.err='unsupported';throw new Error('no');}
   const st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
   const a=ac();const src=a.createMediaStreamSource(st);const an=a.createAnalyser();an.fftSize=4096;src.connect(an);
-  MIC.an=an;MIC.buf=new Float32Array(4096);MIC.sr=a.sampleRate;MIC.ok=true;return true;}catch(e){MIC.ok=false;MIC.tried=true;return false;}}
+  MIC.an=an;MIC.buf=new Float32Array(4096);MIC.sr=a.sampleRate;MIC.ok=true;return true;}catch(e){MIC.ok=false;MIC.tried=true;if(MIC.err!=='unsupported')MIC.err=e&&e.name||'other';return false;}}
 function noPitch(){MIC.midi=null;MIC.stable=0;MIC.lastRound=null;}
 let NSDF=null;
 function analyze(now){if(!MIC.ok||now-MIC.last<30)return;MIC.last=now;MIC.seq++;const b=MIC.buf;MIC.an.getFloatTimeDomainData(b);
@@ -739,15 +739,19 @@ function unwake(){try{WL&&WL.release();}catch(e){}WL=null;}
 const RANGE={cello:[36,62],guitar:[40,76],piano:[48,84]};
 function fitShift(inst,notes){const ms=notes.filter(n=>n.m!=null).map(n=>n.m);if(!ms.length)return 0;const [lo,hi]=RANGE[inst.id];let best=0,bs=1e9;
   for(const k of [0,12,-12,24,-24]){let bad=0;for(const m of ms){const x=m+k;if(x<lo||x>hi)bad++;}const sc=bad*10+Math.abs(k)/12;if(sc<bs){bs=sc;best=k;}}return best;}
-const micFail='Le micro n\'est pas disponible ici. Pour jouer avec ton instrument, ouvre le fichier du jeu dans Chrome sur un ordinateur ou une tablette et autorise le micro. Sinon, joue au toucher.';
+function micHelp(){const ios=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);const safari=/Safari/.test(navigator.userAgent)&&!/CriOS|FxiOS|EdgiOS|Brave/i.test(navigator.userAgent)&&!(navigator.brave);
+  if(MIC.err==='unsupported')return 'Ce navigateur ne donne pas accès au micro aux sites web.'+(ios?' Sur iPhone et iPad, ouvre le jeu dans Safari (ou depuis son icône sur l\'écran d\'accueil ajoutée avec Safari).':' Essaie Chrome, Edge ou Safari.')+' Sinon, joue au toucher.';
+  if(MIC.err==='NotAllowedError'||MIC.err==='SecurityError')return 'L\'accès au micro a été refusé.'+(ios?' Va dans Réglages de l\'iPhone → '+(safari?'Safari → Microphone':'ton navigateur (par exemple Brave) → Microphone')+' et autorise-le, puis recharge la page.':' Autorise le micro pour ce site (icône à gauche de l\'adresse), puis recharge la page.')+(ios&&!safari?' Si l\'option n\'existe pas, ce navigateur ne gère pas le micro : utilise Safari.':'');
+  if(MIC.err==='NotFoundError')return 'Aucun micro n\'a été trouvé sur cet appareil.';
+  return 'Le micro n\'est pas disponible ici.'+(ios?' Sur iPhone et iPad, Safari est le plus fiable.':'')+' Sinon, joue au toucher.';}
 async function startGame(partIdx){
   stopListen();ac();
-  if(S.set.input==='mic'){const ok=await startMic();if(!ok){$('#micNotice').hidden=false;$('#micNoticeTxt').textContent=micFail;window.scrollTo({top:0,behavior:'smooth'});return;}}
+  if(S.set.input==='mic'){const ok=await startMic();if(!ok){$('#micNotice').hidden=false;$('#micNoticeTxt').textContent=micHelp();window.scrollTo({top:0,behavior:'smooth'});return;}}
   const song=CUR;runGame({song,partIdx,players:[{p:S,inst:INST,shift:0}],kind:'solo',mode:S.set.mode,input:S.set.input,metro:S.set.metro,guide:S.set.guide,bpm:Math.round(song.bpm*pct(song))});
 }
 async function startDuo(song){
   stopListen();ac();const D=DB.duo;
-  if(D.input==='mic'){const ok=await startMic();if(!ok){$('#duoNotice').hidden=false;$('#duoNotice').textContent=micFail;window.scrollTo({top:0,behavior:'smooth'});return;}}
+  if(D.input==='mic'){const ok=await startMic();if(!ok){$('#duoNotice').hidden=false;$('#duoNotice').textContent=micHelp();window.scrollTo({top:0,behavior:'smooth'});return;}}
   const players=D.sel.map(id=>DB.profiles.find(p=>p.id===id)).filter(Boolean).map(p=>{const inst=INSTS[p.inst]||INSTS.cello;return{p,inst,shift:fitShift(inst,song.notes)};});
   if(players.length<2)return;
   runGame({song,partIdx:null,players,kind:D.kind,mode:D.mode,input:D.input,metro:D.metro,guide:false,bpm:Math.round(song.bpm*(D.pct||.75))});
@@ -949,10 +953,10 @@ $('#resBack').onclick=()=>show(LAST.duo?'duo':'songScr');
 
 /* ---------- accordeur ---------- */
 const TUN={on:false};
-function openTuner(){$('#sens').value=S.thresh;$('#tunNotice').hidden=!(MIC.tried&&!MIC.ok);$('#tStart').hidden=MIC.ok;
+function openTuner(){$('#sens').value=S.thresh;$('#tunNotice').hidden=!(MIC.tried&&!MIC.ok);$('#tunNotice').textContent=micHelp();$('#tStart').hidden=MIC.ok;
   const box=$('#tStrings');box.innerHTML='';box.style.gridTemplateColumns='repeat('+INST.open.length+',1fr)';INST.open.forEach((m,i)=>{const b=document.createElement('button');b.style.setProperty('--c',COLORS[i]);b.textContent=INST.lanes[i];b.dataset.m=m;b.onclick=()=>tone(m,1.6,0,.2);box.appendChild(b);});
   if(MIC.ok)runTuner();}
-$('#tStart').onclick=async()=>{const ok=await startMic();$('#tunNotice').hidden=ok;$('#tStart').hidden=ok;if(ok)runTuner();};
+$('#tStart').onclick=async()=>{MIC.err=null;const ok=await startMic();$('#tunNotice').textContent=micHelp();$('#tunNotice').hidden=ok;$('#tStart').hidden=ok;if(ok)runTuner();};
 $('#sens').oninput=e=>{S.thresh=+e.target.value;save();};
 function runTuner(){if(TUN.on)return;TUN.on=true;const loop=ts=>{if(!TUN.on)return;analyze(ts);
   if(MIC.midi!=null&&MIC.stable>=2){$('#tNote').textContent=nm(MIC.midi);$('#tFreq').textContent=MIC.freq.toFixed(1)+' Hz';const cts=Math.max(-50,Math.min(50,MIC.cents));$('#tNeedle').style.left=(50+cts)+'%';
