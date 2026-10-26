@@ -500,8 +500,8 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
   </div>
   <div><span class="label">Écouter la note juste</span>
     <div class="strings" id="tStrings" style="margin-top:8px"></div></div>
-  <div class="panel"><div class="spread"><b>Sensibilité du micro</b><span class="small muted">plus à droite = entend les sons faibles</span></div>
-    <input type="range" id="sens" min="1" max="40" step="1" aria-label="Sensibilité"></div>
+  <div class="panel"><div class="spread"><b>Sensibilité du micro</b><span class="small muted">plus à droite = entend les sons faibles (guitare électrique sans ampli : tout à droite)</span></div>
+    <input type="range" id="sens" min="1" max="50" step="1" aria-label="Sensibilité"></div>
 </section>
 
 <!-- ÉDITEUR -->
@@ -642,7 +642,7 @@ function playNotes(notes,bpm,done){stopListen();const a=ac();const g=a.createGai
 
 /* ---------- micro & détection de hauteur ---------- */
 const MIC={ok:false,tried:false,an:null,buf:null,sr:44100,midi:null,mf:0,cents:0,freq:0,rms:0,stable:0,lastRound:null,last:0,seq:0};
-function micThr(){const t=Math.max(1,Math.min(40,S.thresh||20));return .03*Math.pow(.001/.03,(t-1)/39);}
+function micThr(){const t=Math.max(1,Math.min(50,S.thresh||20));return .03*Math.pow(.0003/.03,(t-1)/49);}
 async function startMic(){if(MIC.ok)return true;try{try{if(navigator.audioSession)navigator.audioSession.type='play-and-record';}catch(e){}if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){MIC.err='unsupported';throw new Error('no');}
   const st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
   if(AC&&AC.state!=='running'){try{AC.close();}catch(e){}AC=null;}
