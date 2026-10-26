@@ -100,7 +100,11 @@ p{margin:0}
 .setprof button{display:flex;align-items:center;gap:6px;padding:4px 10px 4px 4px;border-radius:999px;background:var(--deck);font-weight:600;border:2px solid transparent}
 .setprof button .av{width:30px;height:30px;font-size:1rem}
 .setprof button.on{border-color:var(--gold);background:var(--deck-2)}
-.setbody{flex:1;min-height:0;display:grid;grid-template-columns:1.2fr 1fr;gap:16px}
+.setbody{flex:1;min-height:0;display:grid;grid-template-columns:1fr;gap:16px}
+.settabs{grid-template-columns:repeat(4,1fr);flex:none}
+.settabs button{padding:9px 4px}
+.pane{overflow-y:auto}
+#colOther{max-width:760px;width:100%;justify-self:center}
 .setcol{background:var(--deck);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;min-height:0;min-width:0;overflow:hidden}
 .hist{flex:1;min-height:0;display:flex;flex-direction:column;gap:6px;overflow:hidden}
 .hrow{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;background:#0b2233;border-radius:10px;padding:6px 10px;font-size:.88rem}
@@ -119,7 +123,7 @@ p{margin:0}
 .gateq{font-family:var(--f-display);font-size:2.4rem;color:var(--gold);text-align:center}
 .gear{position:absolute;top:max(10px,env(safe-area-inset-top,0px));right:max(14px,env(safe-area-inset-right,0px));width:46px;height:46px;border-radius:50%;background:var(--deck);display:grid;place-items:center;color:var(--mist)}
 #profiles{position:relative}
-@media (orientation:portrait) and (max-width:700px){.setbody{grid-template-columns:1fr;grid-template-rows:1fr auto}}
+
 .pane{display:flex;flex-direction:column;gap:10px;min-height:0}
 .ghbox{border-top:1px solid var(--deck-2);padding-top:10px;display:flex;flex-direction:column;gap:8px}
 .ghbox .addgrid .field:first-child{grid-column:auto}
@@ -394,15 +398,16 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
       <div class="row"><button class="btn" id="gateOk">Valider</button><button class="btn ghost" id="gateNo">Annuler</button></div>
     </div>
   </div>
+  <div class="seg settabs" id="setTabs"><button data-v="hist" class="on">Historique</button><button data-v="add">Ajouter</button><button data-v="bak">Sauvegarde</button><button data-v="rst">Remise à zéro</button></div>
   <div class="setbody" id="setBody">
-    <div class="setcol">
+    <div class="setcol" id="colHist">
       <div class="spread"><h3>Historique</h3><span class="small muted" id="histInfo"></span></div>
       <div class="hist" id="histList"></div>
       <div class="pager"><button class="btn ghost small" id="histPrev" aria-label="Page précédente">‹ Plus récent</button><span class="small muted" id="histPage"></span><button class="btn ghost small" id="histNext" aria-label="Page suivante">Plus ancien ›</button></div>
     </div>
-    <div class="setcol">
-      <div class="seg seg3" id="setTabs"><button data-v="add" class="on">Ajouter</button><button data-v="bak">Sauvegarde</button><button data-v="rst">Remise à zéro</button></div>
+    <div class="setcol" id="colOther" hidden>
       <div class="pane" id="paneAdd">
+        <h3>Ajouter une performance</h3>
         <div class="addgrid">
           <div class="field"><label class="label" for="addWhat">Activité</label><input id="addWhat" maxlength="40" placeholder="Cours, concert, entraînement libre…"></div>
           <div class="field"><label class="label" for="addDate">Date</label><input id="addDate" type="date"></div>
@@ -412,6 +417,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
         <div class="row"><button class="btn" id="addBtn">Ajouter la performance</button><span class="small" id="addMsg"></span></div>
       </div>
       <div class="pane" id="paneBak" hidden>
+        <h3>Sauvegarde</h3>
         <div class="row"><button class="btn small" id="bakSave">Sauvegarder dans un fichier</button><button class="btn ghost small" id="bakLoad">Restaurer un fichier</button><input type="file" id="bakFile" accept=".json,application/json" hidden></div>
         <p class="small" id="bakMsg"></p>
         <div class="ghbox">
@@ -425,6 +431,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
         </div>
       </div>
       <div class="pane" id="paneRst" hidden>
+        <h3>Remise à zéro</h3>
         <p class="muted">Efface points, étoiles, badges, historique et série de jours. Les profils, les instruments et les partitions restent.</p>
         <div class="row"><button class="btn danger small" id="rstOne">Ce musicien</button><button class="btn danger small" id="rstAll">Toute la famille</button></div>
       </div>
@@ -959,7 +966,7 @@ function addHist(p,h){p.hist=p.hist||[];p.hist.unshift({id:'h'+Date.now()+Math.f
 function dayOf(iso){return today(new Date(iso));}
 function openSettings(){const a=3+Math.floor(Math.random()*7),b=3+Math.floor(Math.random()*7);SET.ans=a*b;$('#gateQ').textContent=a+' × '+b+' = ?';$('#gateIn').value='';$('#gateErr').hidden=true;
   $('#setGate').hidden=false;$('#rstOv').hidden=true;SET.pid=S&&DB.profiles.includes(S)?S.id:(DB.profiles[0]||{}).id;SET.page=0;
-  document.querySelectorAll('#app>section').forEach(x=>x.hidden=x.id!=='settings');renderSettings();setTimeout(()=>{try{$('#gateIn').focus();}catch(e){}},50);}
+  document.querySelectorAll('#app>section').forEach(x=>x.hidden=x.id!=='settings');setSeg($('#setTabs'),'hist');$('#colHist').hidden=false;$('#colOther').hidden=true;renderSettings();setTimeout(()=>{try{$('#gateIn').focus();}catch(e){}},50);}
 $('#gateOk').onclick=()=>{if(+$('#gateIn').value===SET.ans){$('#setGate').hidden=true;}else{$('#gateErr').hidden=false;}};
 $('#gateIn').addEventListener('keydown',e=>{if(e.key==='Enter')$('#gateOk').click();});
 $('#gateNo').onclick=()=>show('profiles');$('#setClose').onclick=()=>show('profiles');
@@ -1002,7 +1009,7 @@ function importObj(o){const db=o&&o.db?o.db:o;if(!db||!Array.isArray(db.profiles
   DB.profiles.forEach(p=>{p.insts=(p.insts&&p.insts.length)?p.insts:[p.inst||'cello'];if(!p.insts.includes(p.inst))p.inst=p.insts[0];p.set=Object.assign({...DEF_SET,pct:{}},p.set||{});});
   S=DB.profiles.find(p=>p.id===DB.active)||DB.profiles[0]||newProfile();if(DB.profiles.length)applyProfile(S);else save();}
 function msg(id,t,ok){const el=$(id);el.textContent=t;el.style.color=ok===false?'var(--coral)':ok?'var(--kelp)':'var(--mist)';}
-$('#setTabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;setSeg($('#setTabs'),b.dataset.v);$('#paneAdd').hidden=b.dataset.v!=='add';$('#paneBak').hidden=b.dataset.v!=='bak';$('#paneRst').hidden=b.dataset.v!=='rst';
+$('#setTabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;setSeg($('#setTabs'),b.dataset.v);$('#colHist').hidden=b.dataset.v!=='hist';$('#colOther').hidden=b.dataset.v==='hist';$('#paneAdd').hidden=b.dataset.v!=='add';$('#paneBak').hidden=b.dataset.v!=='bak';$('#paneRst').hidden=b.dataset.v!=='rst';
   $('#ghRepo').value=SYNC.repo||'';$('#ghTok').value=SYNC.token?'••••••••':'';ghStatus();};
 $('#bakSave').onclick=async()=>{const name='ile-aux-notes-sauvegarde-'+today()+'.json',data=exportJSON();
   try{const f=new File([data],name,{type:'application/json'});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'Sauvegarde L’Île aux Notes'});msg('#bakMsg','Sauvegarde prête : choisis « Enregistrer dans Fichiers ».',true);return;}}catch(e){if(e&&e.name==='AbortError')return;}
