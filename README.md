@@ -3,6 +3,7 @@
 Jeu d'entraînement musical pour toute la famille : violoncelle, piano et guitare.
 
 - Les notes tombent dans les couloirs des cordes (ou des touches) ; le micro écoute l'instrument, ou on joue au toucher.
+- Deux affichages : « Chute » (les notes tombent dans les couloirs) et « Partition » (vraie portée avec clé, armure, mesures, la note à jouer colorée et les notes jouées en vert).
 - Modes Douceur (sans points, pour apprendre sans pression), Entraînement (le jeu attend la bonne note) et Défi (en rythme), tempo réglable, métronome.
 - Profils par musicien (avatar, couleur, un ou plusieurs instruments), points (total et de la semaine), étoiles, rangs et badges.
 - Duo : deux musiciens à l'écran, chacun son tour ou ensemble.
