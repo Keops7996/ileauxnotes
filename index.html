@@ -551,7 +551,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
 <script>
 (function(){var shown=0;function show(m){if(shown++>3)return;var c=document.getElementById('crash');if(!c)return;document.getElementById('crashTxt').textContent=String(m).slice(0,400);c.hidden=false;}
 window.addEventListener('error',function(e){show((e.message||'erreur')+(e.lineno?' (ligne '+e.lineno+')':''));});
-window.addEventListener('unhandledrejection',function(e){var r=e.reason;if(r&&(r.name==='NotAllowedError'||r.name==='AbortError'))return;show('promesse : '+(r&&(r.message||r.name)||r));});
+window.addEventListener('unhandledrejection',function(e){try{e.preventDefault();}catch(_){}});
 document.addEventListener('click',function(e){if(e.target.id==='crashReload')location.reload();if(e.target.id==='crashClose')document.getElementById('crash').hidden=true;});})();
 </script>
 <script>
@@ -1296,7 +1296,8 @@ $('#edSave').onclick=()=>{edMeta();const err=$('#edErr');if(!ED.title){err.hidde
   song.by=(songById(song.id)&&songById(song.id).by)||S.name;award('compo');const i=DB.custom.findIndex(x=>x.id===song.id);if(i>=0){DB.custom[i]=song;}else DB.custom.push(song);save();stopListen();CUR=song;show('songScr');};
 
 (function boot(){const go=()=>{if(!DB.profiles.length){openProfEdit(null,true);return;}applyProfile(S);show('profiles');};go();
-  if(SYNC.repo&&SYNC.token)ghPull().then(r=>{if(r&&r.loaded){go();banner('Progression synchronisée');}}).catch(()=>{});})();
+  if(SYNC.repo&&SYNC.token)ghPull().then(r=>{if(!(r&&r.loaded))return;const vis=[...document.querySelectorAll('#app>section')].find(e=>!e.hidden);const id=vis&&vis.id;
+    if(!DB.profiles.length){openProfEdit(null,true);return;}if(id==='profiles'||id==='profEdit')show('profiles');else if(id==='home')renderHome();}).catch(()=>{});})();
 })();
 </script>
 </body></html>
