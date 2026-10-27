@@ -133,6 +133,7 @@ p{margin:0}
 .av{width:40px;height:40px;border-radius:50%;display:inline-grid;place-items:center;font-size:1.4rem;background:var(--gold);flex:none;box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
 .av.big{width:84px;height:84px;font-size:2.8rem}
 .menu{height:100%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;gap:clamp(10px,3vh,24px);max-width:900px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px;overflow:hidden}
+.ver{position:absolute;left:max(16px,env(safe-area-inset-left,0px));bottom:max(6px,env(safe-area-inset-bottom,0px));margin:0;font-size:.7rem;color:var(--mist);opacity:.6}
 .mhead{text-align:center;display:flex;flex-direction:column;gap:2px}
 .mhead h1{font-size:clamp(1.8rem,7vh,3rem)}
 .pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:clamp(8px,2vh,14px);align-content:center}
@@ -298,6 +299,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
 <section id="profiles" class="menu" hidden>
   <button class="gear" id="toSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1L15 3.5h-4L10.7 6a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
   <div class="mhead"><h1>L’Île aux Notes</h1><p class="muted">Qui joue aujourd’hui ?</p></div>
+  <p class="ver">version 27.10 · 8h</p>
   <div class="pgrid" id="profList"></div>
 </section>
 <section id="profEdit" class="screen" hidden>
@@ -549,7 +551,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
   </div>
 </div>
 <script>
-(function(){var shown=0;function show(m){if(shown++>3)return;var c=document.getElementById('crash');if(!c)return;document.getElementById('crashTxt').textContent=String(m).slice(0,400);c.hidden=false;}
+(function(){var shown=0;window.__crash=function(m){show(m);};function show(m){if(shown++>3)return;var c=document.getElementById('crash');if(!c)return;document.getElementById('crashTxt').textContent=String(m).slice(0,400);c.hidden=false;}
 window.addEventListener('error',function(e){show((e.message||'erreur')+(e.lineno?' (ligne '+e.lineno+')':''));});
 window.addEventListener('unhandledrejection',function(e){try{e.preventDefault();}catch(_){}});
 document.addEventListener('click',function(e){if(e.target.id==='crashReload')location.reload();if(e.target.id==='crashClose')document.getElementById('crash').hidden=true;});})();
@@ -739,7 +741,8 @@ const matches=tg=>stable()&&[0,12,-12].some(o=>Math.abs(MIC.mf-(tg+o))<.55);
 /* ---------- navigation ---------- */
 let CUR=null;
 function show(id){stopListen();document.querySelectorAll('#app>section').forEach(s=>s.hidden=s.id!==id);if(id!=='tuner')TUN.on=false;window.scrollTo(0,0);
-  if(id==='home')renderHome();if(id==='profiles')renderProfiles();if(id==='duo')renderDuo();if(id==='songScr')renderSong();if(id==='tuner')openTuner();}
+  try{if(id==='home')renderHome();if(id==='profiles')renderProfiles();if(id==='duo')renderDuo();if(id==='songScr')renderSong();if(id==='tuner')openTuner();}
+  catch(e){if(window.__crash)window.__crash('Écran '+id+' : '+(e&&e.message)+' '+((e&&e.stack)||'').split('\n').slice(0,2).join(' '));}}
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>show(b.dataset.go));
 
 /* ---------- accueil ---------- */
