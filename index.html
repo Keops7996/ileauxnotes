@@ -129,6 +129,8 @@ p{margin:0}
 .ghbox .addgrid .field:first-child{grid-column:auto}
 .imp{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--deck);border-radius:12px;padding:10px 12px}
 .impsel{background:#0b2233;border:1px solid var(--deck-2);border-radius:10px;padding:8px 10px;color:var(--foam);max-width:100%}
+.song .st{flex-direction:column;align-items:flex-end;gap:2px}
+.stl{display:flex;align-items:center;gap:4px}
 .seg3{grid-template-columns:repeat(3,1fr)}
 .av{width:40px;height:40px;border-radius:50%;display:inline-grid;place-items:center;font-size:1.4rem;background:var(--gold);flex:none;box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
 .av.big{width:84px;height:84px;font-size:2.8rem}
@@ -299,7 +301,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
 <section id="profiles" class="menu" hidden>
   <button class="gear" id="toSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1L15 3.5h-4L10.7 6a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
   <div class="mhead"><h1>L’Île aux Notes</h1><p class="muted">Qui joue aujourd’hui ?</p></div>
-  <p class="ver">version 27.10 · 11h</p>
+  <p class="ver">version 27.10 · 12h</p>
   <div class="pgrid" id="profList"></div>
 </section>
 <section id="profEdit" class="screen" hidden>
@@ -365,7 +367,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
     <div class="toggle"><div><b>Mélodie guide</b><p class="small muted" id="guideTxt">le jeu joue la note avec toi</p></div><button class="switch" id="swGuide" role="switch" aria-checked="false" aria-label="Mélodie guide"></button></div>
     <button class="btn ghost" id="listenBtn">Écouter le morceau</button>
   </div>
-  <div class="spread"><h3>Choisis une partie</h3><div class="chips" id="pbChips"></div></div>
+  <div class="spread"><h3>Choisis une partie <span class="small muted" id="lvMode"></span></h3><div class="chips" id="pbChips"></div></div>
   <div class="levels" id="levelList"></div>
   <div class="row" id="customActs" hidden><button class="btn ghost small" id="editSong">Modifier les notes</button><button class="btn ghost small" id="delSong">Supprimer</button></div>
 </section>
@@ -764,8 +766,11 @@ function getParts(song){let b=0;for(const n of song.notes)b+=n.d;const total=b,p
   for(let s=0;s<nBars;s+=pb){const st=s===0?0:pk+s*bpb;const en=Math.min(total,pk+(s+pb)*bpb);out.push({label:(pb===1?'Mesure '+(s+1):'Mesures '+(s+1)+' à '+Math.min(s+pb,nBars)),start:st,end:en});}
   const last=out[out.length-1];if(out.length>1&&last&&(last.end-last.start)<bpb*Math.min(pb,2)*.5){out.pop();out[out.length-1].end=total;out[out.length-1].label=out[out.length-1].label.replace(/à \d+$/,'à '+nBars);}
   return out;}
-const bestOf=(id,i)=>(S.best[id]&&S.best[id][bkey(id,i)])||{stars:0,score:0};
-function songStars(song){const P=getParts(song);let s=0;const n=P.length+(P.length>1?1:0);for(let i=0;i<n;i++)s+=bestOf(song.id,i).stars;return[s,n*3];}
+const viewMode=()=>S.set.mode==='rhythm'?'rhythm':'wait';
+const mkey=(id,i,mode)=>(mode==='rhythm'?'r:':'')+bkey(id,i);
+const bestOf=(id,i,mode)=>(S.best[id]&&S.best[id][mkey(id,i,mode||viewMode())])||{stars:0,score:0};
+const anyStar=(id,i)=>Math.max(bestOf(id,i,'wait').stars,bestOf(id,i,'rhythm').stars);
+function songStars(song){const P=getParts(song);let w=0,r=0;const n=P.length+(P.length>1?1:0);for(let i=0;i<n;i++){w+=bestOf(song.id,i,'wait').stars;r+=bestOf(song.id,i,'rhythm').stars;}return[w,n*3,r];}
 function renderHome(){
   $('#meAv').textContent=S.avatar;$('#meAv').style.background=S.color;$('#meName').textContent=S.name||'Pirate';setSeg($('#segInst'),INST.id);[...$('#segInst').children].forEach(b=>b.hidden=!S.insts.includes(b.dataset.v));$('#segInst').style.gridTemplateColumns='repeat('+S.insts.length+',1fr)';$('#instBox').hidden=S.insts.length<2;$('#toTuner').hidden=!INST.tuner;
   const st=(S.streak.last===today()||S.streak.last===yesterday())?S.streak.n:0;
@@ -778,7 +783,7 @@ function renderHome(){
   $('#hbIcons').innerHTML=ACH.filter(a=>(S.ach||{})[a.id]).map(a=>'<span title="'+a.t+'">'+a.i+'</span>').join('')||'<span class="small muted">ton premier badge t\'attend</span>';$('#hbList').innerHTML=badgeHTML(S);
   const L=$('#songList');L.innerHTML='';
   for(const s of allSongs()){const bt=document.createElement('button');bt.className='song';
-    try{const [a,b]=songStars(s);bt.innerHTML=`<h3></h3><span class="sub"></span><span class="st">${STAR}<span>${a}/${b}</span></span>`;
+    try{const [a,b,c]=songStars(s);bt.innerHTML=`<h3></h3><span class="sub"></span><span class="st"><span class="stl" title="Entraînement">${STAR}<span>${a}/${b}</span></span><span class="stl" title="Défi">⚔️<span>${c}/${b}</span></span></span>`;
     bt.querySelector('h3').textContent=s.title;bt.querySelector('.sub').textContent=s.sub||(s.bpb+'/4 · '+s.notes.filter(n=>n.m!=null).length+' notes'+(s.by?' · ajouté par '+s.by:' · partition de la famille'));
     bt.onclick=()=>{CUR=s;show('songScr');};}
     catch(e){bt.innerHTML='<h3></h3><span class="sub">Partition illisible · touche pour la supprimer</span>';bt.querySelector('h3').textContent=String(s.title||'Sans titre');
@@ -804,19 +809,20 @@ function renderSong(){const s=CUR;$('#sgTitle').textContent=s.title;$('#mineTxt'
   $('#listenBtn').textContent='Écouter le morceau';
   {const cur=partBarsOf(s),opts=[-30,-60,2,4,8,0];if(!opts.includes(cur))opts.splice(opts.length-1,0,cur);const C=$('#pbChips');C.innerHTML='<span class="small muted">étapes de</span>';
     opts.forEach(v=>{const c=document.createElement('button');c.className='chip'+(v===cur?' on':'');c.textContent=v===0?'Tout':v<0?(v===-60?'1 min':(-v)+' s'):v+(v===1?' mesure':' mesures');c.onclick=()=>{if(s.custom)s.partBars=v;else{DB.partSize=DB.partSize||{};DB.partSize[s.id]=v;}save();renderSong();};C.appendChild(c);});}
+  $('#lvMode').textContent='· étoiles '+(viewMode()==='rhythm'?'Défi':'Entraînement');
   const P=getParts(s),L=$('#levelList');L.innerHTML='';
   const entries=P.map((p,i)=>({i,label:'Partie '+(i+1),sub:p.label,num:String(i+1)}));
   if(P.length>1)entries.push({i:P.length,label:'Morceau entier',sub:'Tout d\'un coup, comme au concert',num:'★',full:true});
-  for(const e of entries){const unlocked=e.i===0||(e.full?P.every((_,k)=>bestOf(s.id,k).stars>=1):bestOf(s.id,e.i-1).stars>=1);const b=bestOf(s.id,e.i);
+  for(const e of entries){const unlocked=e.i===0||(e.full?P.every((_,k)=>anyStar(s.id,k)>=1):anyStar(s.id,e.i-1)>=1);const b=bestOf(s.id,e.i);
     const bt=document.createElement('button');bt.className='level'+(unlocked?'':' locked')+(e.full?' full':'');
     bt.innerHTML=`<span class="num">${unlocked?e.num:'<svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10V7a5 5 0 0 1 10 0v3h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm2 0h6V7a3 3 0 0 0-6 0z"/></svg>'}</span><span><b></b><br><span class="small"></span></span><span class="stars">${[0,1,2].map(k=>STAR.replace('<svg','<svg class="'+(k<b.stars?'on':'')+'"')).join('')}</span>`;
-    bt.querySelector('b').textContent=e.label;bt.querySelector('.small').textContent=unlocked?(b.score?e.sub+' · record '+b.score:e.sub):'Gagne 1 étoile avant pour débloquer';
+    bt.querySelector('b').textContent=e.label;bt.querySelector('.small').textContent=unlocked?(b.score?e.sub+' · record '+(viewMode()==='rhythm'?'Défi ':'Entraînement ')+b.score:e.sub):'Gagne 1 étoile avant pour débloquer';
     if(unlocked)bt.onclick=()=>startGame(e.i);L.appendChild(bt);}
   $('#customActs').hidden=!s.custom;$('#delSong').textContent='Supprimer';$('#delSong').dataset.c='';
 }
 function updTempo(){const s=CUR,b=Math.round(s.bpm*pct(s));$('#tpVal').textContent=b;$('#tpRange').value=b;$('#tpOrig').textContent='tempo d\'origine : '+s.bpm;
   document.querySelectorAll('#tpChips .chip').forEach(c=>c.classList.toggle('on',Math.abs(parseFloat(c.dataset.p)-pct(s))<.01));}
-$('#segMode').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.set.mode=b.dataset.v;save();setSeg($('#segMode'),S.set.mode);};
+$('#segMode').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.set.mode=b.dataset.v;save();renderSong();};
 $('#segInput').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.set.input=b.dataset.v;save();renderSong();};
 $('#tpRange').oninput=e=>{S.set.pct[CUR.id]=e.target.value/CUR.bpm;save();updTempo();};
 $('#tpChips').onclick=e=>{const c=e.target.closest('.chip');if(!c)return;S.set.pct[CUR.id]=parseFloat(c.dataset.p);save();updTempo();};
@@ -1023,8 +1029,8 @@ function finishDuo(){G.running=false;unwake();logGameTime();$('#resStars').hidde
 }
 
 function finish(){G.running=false;unwake();logTime((performance.now()-G.t0)/1000);$('#resStars').hidden=false;$('#resG1').hidden=false;$('#resG2').hidden=false;const c=G.counts,tot=G.events.length||1,acc=(c.perfect+.6*c.good)/tot;const stars=acc>=.95?3:acc>=.8?2:acc>=.5?1:0;
-  const id=G.song.id,pi=G.partIdx;S.best[id]=S.best[id]||{};const prev=S.best[id][bkey(id,pi)]||{stars:0,score:0};const record=G.score>prev.score&&prev.score>0;
-  S.best[id][bkey(id,pi)]={stars:Math.max(prev.stars,stars),score:Math.max(prev.score,G.score)};
+  const id=G.song.id,pi=G.partIdx;S.best[id]=S.best[id]||{};const MK=mkey(id,pi,G.mode);const prev=S.best[id][MK]||{stars:0,score:0};const record=G.score>prev.score&&prev.score>0;
+  S.best[id][MK]={stars:Math.max(prev.stars,stars),score:Math.max(prev.score,G.score)};
   const before=rankOf(S.coins).r[1];let earned=Math.round(G.score/100)+stars*5;let chest=false;
   const td=today();if(S.streak.last!==td){S.streak.n=S.streak.last===yesterday()?S.streak.n+1:1;S.streak.last=td;}
   if(S.daily.date!==td)S.daily={date:td,plays:0,chest:false};S.daily.plays++;if(S.daily.plays>=3&&!S.daily.chest){S.daily.chest=true;chest=true;earned+=30;}
@@ -1033,13 +1039,13 @@ function finish(){G.running=false;unwake();logTime((performance.now()-G.t0)/1000
   LAST={stars,acc,earned,chest,record,rankUp:after!==before?after:null,pi};
   const name=S.name?', '+S.name:'';
   $('#resTitle').textContent=stars===3?'Incroyable'+name+' !':stars===2?'Bravo'+name+' !':stars===1?'Bien joué'+name+' !':'Encore un essai !';
-  $('#resSub').textContent=G.song.title+' · '+(pi<getParts(G.song).length?'Partie '+(pi+1):'Morceau entier')+' · '+G.bpm+' BPM';
+  $('#resSub').textContent=G.song.title+' · '+(pi<getParts(G.song).length?'Partie '+(pi+1):'Morceau entier')+' · '+(G.mode==='rhythm'?'Défi':'Entraînement')+' · '+G.bpm+' BPM';
   $('#rP').textContent=c.perfect;$('#rG').textContent=c.good;$('#rM').textContent=c.miss;$('#rS').textContent=G.score;$('#rC').textContent=G.maxCombo;$('#rA').textContent=Math.round(acc*100)+'%';
   const rs=$('#resStars');rs.innerHTML=STAR+STAR+STAR;
   const lines=['<b>+'+earned+' points</b> · total '+S.coins+', cette semaine '+weekPts(S).pts];if(record)lines.push('Nouveau record !');if(chest)lines.push('Coffre du jour ouvert : +30 pièces');if(LAST.rankUp)lines.push('Nouveau rang : '+LAST.rankUp+' !');newB.forEach(b=>lines.push('<span class="newb"><span class="bi">'+b.i+'</span> Nouveau badge : <b>'+b.t+'</b></span>'));if(newB.length)setTimeout(()=>banner('Nouveau badge !'),200);
   if(stars===0)lines.push('Astuce : baisse le tempo à 50 % ou passe en mode Entraînement.');else if(G.mode==='wait'&&stars>=2)lines.push('Prêt pour le mode Défi, en rythme ?');
   $('#resLoot').innerHTML=lines.map(l=>'<span>'+l+'</span>').join('');
-  const P=getParts(G.song);const nxt=pi+1;const hasNext=stars>=1&&(nxt<P.length||(nxt===P.length&&P.length>1&&P.every((_,k)=>bestOf(id,k).stars>=1)));
+  const P=getParts(G.song);const nxt=pi+1;const hasNext=stars>=1&&(nxt<P.length||(nxt===P.length&&P.length>1&&P.every((_,k)=>anyStar(id,k)>=1)));
   $('#resBack').textContent='Retour au morceau';$('#resNext').hidden=!hasNext;$('#resNext').textContent=nxt===P.length?'Morceau entier':'Partie '+(nxt+1);
   show('results');
   [...rs.children].forEach((s,i)=>{if(i<stars)setTimeout(()=>{s.classList.add('on');coin();},350+i*350);});
