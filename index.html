@@ -301,7 +301,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
 <section id="profiles" class="menu" hidden>
   <button class="gear" id="toSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1L15 3.5h-4L10.7 6a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
   <div class="mhead"><h1>L’Île aux Notes</h1><p class="muted">Qui joue aujourd’hui ?</p></div>
-  <p class="ver">version 27.10 · 14h</p>
+  <p class="ver">version 27.10 · 18h45</p>
   <div class="pgrid" id="profList"></div>
 </section>
 <section id="profEdit" class="screen" hidden>
@@ -727,7 +727,7 @@ async function startMic(){if(MIC.ok)return true;try{try{if(navigator.audioSessio
   const a=ac();try{await a.resume();}catch(e){}const src=a.createMediaStreamSource(st);const an=a.createAnalyser();an.fftSize=4096;an.smoothingTimeConstant=0;src.connect(an);
   const mute=a.createGain();mute.gain.value=0;an.connect(mute);mute.connect(a.destination);MIC.stream=st;
   MIC.an=an;MIC.buf=new Float32Array(4096);MIC.sr=a.sampleRate;MIC.ok=true;return true;}catch(e){MIC.ok=false;MIC.tried=true;if(MIC.err!=='unsupported'){MIC.err=e&&e.name||'other';MIC.errMsg=(e&&e.name||'')+(e&&e.message?' : '+e.message:'');}return false;}}
-function noPitch(){MIC.midi=null;MIC.stable=0;MIC.lastRound=null;}
+function noPitch(){MIC.midi=null;MIC.stable=0;MIC.lastRound=null;MIC.hist=[];MIC.med=null;}
 let NSDF=null;
 function analyze(now){if(!MIC.ok||now-MIC.last<30)return;MIC.last=now;MIC.seq++;const b=MIC.buf;MIC.an.getFloatTimeDomainData(b);
   const W=2048;let rms=0;for(let i=0;i<W;i++)rms+=b[i]*b[i];rms=Math.sqrt(rms/W);MIC.rms=rms;
@@ -736,7 +736,7 @@ function analyze(now){if(!MIC.ok||now-MIC.last<30)return;MIC.last=now;MIC.seq++;
     if(rr>=thr&&now-MIC.onsetT>80&&(MIC.quiet>=2||(!MIC.rising&&rr>MIC.low*1.5))){MIC.onsets++;MIC.onsetT=now;MIC.rising=true;MIC.peak=rr;}
     MIC.quiet=rr<thr?MIC.quiet+1:0;}
   if(rms<thr){noPitch();return;}
-  const sr=MIC.sr,minL=Math.floor(sr/1100),maxL=Math.min(Math.floor(sr/58),4096-W-2);
+  const sr=MIC.sr,minL=Math.floor(sr/1500),maxL=Math.min(Math.floor(sr/58),4096-W-2);
   if(!NSDF||NSDF.length<maxL+2)NSDF=new Float32Array(maxL+2);const n=NSDF;
   for(let t=minL;t<=maxL+1;t++){let a=0,m=0;for(let i=0;i<W;i++){const x=b[i],y=b[i+t];a+=x*y;m+=x*x+y*y;}n[t]=m>0?2*a/m:0;}
   let t=minL;while(t<=maxL&&n[t]>0)t++;
@@ -746,9 +746,14 @@ function analyze(now){if(!MIC.ok||now-MIC.last<30)return;MIC.last=now;MIC.seq++;
   const T=sel[0],y1=n[T-1],y2=n[T],y3=n[T+1],den=y1-2*y2+y3,sh=den?.5*(y1-y3)/den:0;
   const f=sr/(T+sh);const mf=69+12*Math.log2(f/440);const r=Math.round(mf);
   if(r===MIC.lastRound)MIC.stable++;else{MIC.stable=1;MIC.lastRound=r;}
-  MIC.midi=r;MIC.mf=mf;MIC.cents=(mf-r)*100;MIC.freq=f;}
-const stable=()=>MIC.midi!=null&&MIC.stable>=2;
-const matches=tg=>stable()&&[0,12,-12].some(o=>Math.abs(MIC.mf-(tg+o))<.55);
+  MIC.midi=r;MIC.mf=mf;MIC.cents=(mf-r)*100;MIC.freq=f;MIC.hist=MIC.hist||[];MIC.hist.push(mf);if(MIC.hist.length>5)MIC.hist.shift();
+  const hs=[...MIC.hist].sort((a,b)=>a-b);MIC.med=hs[Math.floor(hs.length/2)];}
+const TOL=.42;
+const stable=()=>{const h=MIC.hist;if(MIC.midi==null||!h||h.length<3)return false;const l=h.slice(-3);return Math.max(...l)-Math.min(...l)<.35;};
+const matches=tg=>stable()&&[0,12,-12].some(o=>Math.abs(MIC.med-(tg+o))<TOL&&Math.abs(MIC.mf-(tg+o))<TOL);
+function heardTxt(grp){if(MIC.midi==null||MIC.med==null)return['J\'écoute…',false];const t=grp.find(e=>matches(e.midi));
+  if(t)return['J\'entends : '+t.name+' ✓',true];const r=Math.round(MIC.med),c=Math.round((MIC.med-r)*100);
+  return['J\'entends : '+((G&&G.nm)||nm)(r)+(Math.abs(c)>=20?(c>0?' (un peu haut)':' (un peu bas)'):''),false];}
 
 /* ---------- navigation ---------- */
 let CUR=null;
@@ -875,7 +880,7 @@ function runGame(o){
      score:0,combo:0,maxCombo:0,counts:{perfect:0,good:0,miss:0},waiting:false,waitStart:0,paused:false,running:true,
      flash:players.map(x=>x.inst.lanes.map(()=>0)),wrong:players.map(x=>x.inst.lanes.map(()=>0)),pts:[],floats:[],lastTs:performance.now(),endAt:null,lastHitMidi:null,lastHitOn:-1,seqJ:-1};
   G.inst=players[0].inst;warm(evs.map(e=>[players[e.who].inst.id,e.midi]));
-  G.endBeat=evs.reduce((a,e)=>Math.max(a,e.beat+e.dur),0);G.view=kind==='solo'?(S.set.view||'fall'):'fall';G.disp=disp;G.pk0=start===0?pk:0;if(G.view==='score')prepScore();
+  G.endBeat=evs.reduce((a,e)=>Math.max(a,e.beat+e.dur),0);{const k=inferKey(evs.map(e=>e.midi)),T=k<0?['Do','Ré♭','Ré','Mi♭','Mi','Fa','Sol♭','Sol','La♭','La','Si♭','Si']:k>0?['Do','Do#','Ré','Ré#','Mi','Fa','Fa#','Sol','Sol#','La','La#','Si']:null;G.nm=T?(m=>T[((m%12)+12)%12]):nm;evs.forEach(e=>e.name=G.nm(e.midi));}G.view=kind==='solo'?(S.set.view||'fall'):'fall';G.disp=disp;G.pk0=start===0?pk:0;if(G.view==='score')prepScore();
   $('#pauseOv').hidden=true;$('#hudHear').hidden=G.input!=='mic';
   show('game');resizeCanvas();wake();requestAnimationFrame(frame);
 }
@@ -954,12 +959,12 @@ function draw(dt){const c=CTX,w=CV.width/DPR,h=CV.height/DPR;c.clearRect(0,0,w,h
   if(G.beat<0&&!G.paused){c.fillStyle='rgba(244,180,58,.9)';c.font=`400 ${Math.round(Math.min(w,h)*.22)}px 'Pirata One', Georgia, serif`;c.textAlign='center';c.textBaseline='middle';c.fillText(String(Math.ceil(-G.beat)),w/2,h*.38);
     c.font='600 16px Fredoka, sans-serif';c.fillStyle='#e2eef4';c.fillText(G.duo?(G.kind==='relay'?'Chacun son tour, 2 mesures chacun':'Ensemble, les mêmes notes'):(G.mode==='wait'?G.inst.ready:'Écoute le métronome…'),w/2,h*.38+Math.min(w,h)*.14);}
 }
-function hud(){if(G.calm){$('#hudScore').textContent='Douceur';$('#hudCombo').textContent='on apprend sans points';$('#hudProg').style.width=(G.events.length?G.events.filter(e=>e.state).length/G.events.length*100:0)+'%';if(G.input==='mic'){const h=$('#hudHear');if(MIC.midi!=null){h.textContent='J\'entends : '+nm(MIC.midi);h.classList.toggle('ok',pendGroup().some(e=>matches(e.midi)));}else{h.textContent='J\'écoute…';h.classList.remove('ok');}}return;}
+function hud(){if(G.calm){$('#hudScore').textContent='Douceur';$('#hudCombo').textContent='on apprend sans points';$('#hudProg').style.width=(G.events.length?G.events.filter(e=>e.state).length/G.events.length*100:0)+'%';if(G.input==='mic'){const h=$('#hudHear'),[t,ok]=heardTxt(pendGroup());h.textContent=t;h.classList.toggle('ok',ok);}return;}
   $('#hudScore').textContent=G.score;
   if(G.duo){$('#hudCombo').textContent=G.players.map(pl=>(pl.p.name||'Pirate')+' '+pl.score).join(' · ');}
   else{const mult=Math.min(4,1+Math.floor(G.combo/8));$('#hudCombo').textContent=G.combo>1?('Combo '+G.combo+(mult>1?' · x'+mult:'')):(G.mode==='wait'?'Entraînement':'Défi');}
   const done=G.events.filter(e=>e.state).length;$('#hudProg').style.width=(G.events.length?done/G.events.length*100:0)+'%';
-  if(G.input==='mic'){const h=$('#hudHear');const grp=pendGroup();if(MIC.midi!=null){h.textContent='J\'entends : '+nm(MIC.midi);h.classList.toggle('ok',grp.some(e=>matches(e.midi)));}else{h.textContent='J\'écoute…';h.classList.remove('ok');}}}
+  if(G.input==='mic'){const h=$('#hudHear'),[t,ok]=heardTxt(pendGroup());h.textContent=t;h.classList.toggle('ok',ok);}}
 CV.addEventListener('pointerdown',e=>{if(!G)return;if(G.view==='score'){const r=CV.getBoundingClientRect(),g=scoreGeo(),x=e.clientX-r.left,y=e.clientY-r.top;if(g.strip&&y>g.areaH){const nl=G.players[0].inst.lanes.length,l=Math.floor((x-8)/((g.w-16)/nl));if(l>=0&&l<nl){e.preventDefault();ac();tapLane(0,l);}}return;}const r=CV.getBoundingClientRect(),x=e.clientX-r.left,w=r.width,side=Math.min(G.sides-1,Math.floor(x/(w/G.sides)));const g=geo(side);const l=Math.floor((x-g.x0)/g.lw);if(l>=0&&l<g.nl){e.preventDefault();ac();tapLane(side,l);}});
 window.addEventListener('keydown',e=>{if(!G||!G.running||$('#game').hidden)return;const k=e.key.toLowerCase();
   if(k===' '||k==='escape'){togglePause();e.preventDefault();return;}
