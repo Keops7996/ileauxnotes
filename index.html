@@ -301,7 +301,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
 <section id="profiles" class="menu" hidden>
   <button class="gear" id="toSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1L15 3.5h-4L10.7 6a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
   <div class="mhead"><h1>L’Île aux Notes</h1><p class="muted">Qui joue aujourd’hui ?</p></div>
-  <p class="ver">version 27.10 · 13h30</p>
+  <p class="ver">version 27.10 · 13h45</p>
   <div class="pgrid" id="profList"></div>
 </section>
 <section id="profEdit" class="screen" hidden>
@@ -987,13 +987,20 @@ function prepScore(){const inst=G.players[0].inst.id,disp=G.disp,shift=inst==='g
     const mm=x.m+shift,pc=((mm%12)+12)%12,[L,a]=(flats?SPF:SPS)[pc];x.pos=(Math.floor(mm/12)-1)*7+L;const cur=(x.pos in state)?state[x.pos]:keyAcc[L];x.acc=a!==cur?a:null;state[x.pos]=a;}
   G.sc={clef,key,flats,bottom,bars};try{document.fonts&&document.fonts.load("40px 'Noto Music'","𝄞𝄢♯♭♮");}catch(e){}}
 function scoreGeo(){const w=CV.width/DPR,h=CV.height/DPR,strip=G.input==='tap'?Math.min(78,h*.2):0,areaH=h-strip,left=Math.max(14,(w-1100)/2),right=w-left;
-  const mk=sp=>{const head=(5.2+Math.abs(G.sc.key)*1.1)*sp,bw=Math.max(G.bpb,2)*Math.max(38,sp*3.6),bpl=Math.max(1,Math.min(8,Math.floor((right-left-head-2.4*sp)/bw)));return{sp,head,bpl};};
+  const mk=sp=>{const head=(5.4+Math.abs(G.sc.key)*1.15)*sp,bw=Math.max(G.bpb,2)*Math.max(38,sp*3.6),bpl=Math.max(1,Math.min(8,Math.floor((right-left-head-2.4*sp)/bw)));return{sp,head,bpl};};
   const nb=G.sc.bars.length;let o=null,shown=2;for(const sh of [1,2]){const mx=Math.max(6,Math.min(sh===1?17:13,(areaH-30)/(13.6*sh)));for(let sp=mx;sp>=6;sp-=.5){const t=mk(sp);if(Math.ceil(nb/t.bpl)<=sh){o=t;shown=sh;break;}}if(o)break;}
   if(!o)o=mk(Math.max(6,Math.min(13,(areaH-30)/27)));
   const sysH=13*o.sp,top=shown===1?Math.max(8,(areaH-sysH)/2-o.sp):8;return{w,h,strip,areaH,sp:o.sp,sysH,left,right,head:o.head,bpl:o.bpl,top};}
 function glyph(c,ch,x,yTop,yBot,col){c.save();c.fillStyle=col;c.font="100px 'Noto Music','Apple Symbols','Segoe UI Symbol',serif";c.textBaseline='alphabetic';c.textAlign='left';
   const m=c.measureText(ch),a=m.actualBoundingBoxAscent||80,d=m.actualBoundingBoxDescent||20,sc=(yBot-yTop)/(a+d);c.translate(x,yTop+a*sc);c.scale(sc,sc);c.fillText(ch,0,0);c.restore();return(m.width||60)*sc;}
-function accGlyph(c,a,x,y,sp,col){const ch=a>0?'♯':a<0?'♭':'♮';if(a<0)glyph(c,ch,x,y-1.9*sp,y+.55*sp,col);else glyph(c,ch,x,y-1.3*sp,y+1.3*sp,col);}
+function accGlyph(c,a,x,y,sp,col){c.save();c.strokeStyle=col;c.fillStyle=col;c.lineCap='butt';const cx=x+.5*sp,th=Math.max(1,.12*sp);
+  if(a>0){c.lineWidth=th;[[-.28,.12],[.28,-.12]].forEach(([dx,dy])=>{c.beginPath();c.moveTo(cx+dx*sp,y-1.25*sp+dy*sp);c.lineTo(cx+dx*sp,y+1.25*sp+dy*sp);c.stroke();});
+    [-.42,.42].forEach(o=>{c.beginPath();c.moveTo(cx-.55*sp,y+o*sp+.17*sp);c.lineTo(cx+.55*sp,y+o*sp-.17*sp);c.lineTo(cx+.55*sp,y+o*sp+.07*sp);c.lineTo(cx-.55*sp,y+o*sp+.41*sp);c.closePath();c.fill();});}
+  else if(a<0){const sx=cx-.32*sp;c.lineWidth=th;c.beginPath();c.moveTo(sx,y-1.9*sp);c.lineTo(sx,y+.55*sp);c.stroke();
+    c.lineWidth=Math.max(1.2,.2*sp);c.beginPath();c.moveTo(sx,y+.5*sp);c.bezierCurveTo(sx+.9*sp,y,sx+.75*sp,y-.65*sp,sx,y-.2*sp);c.stroke();}
+  else{c.lineWidth=th;c.beginPath();c.moveTo(cx-.3*sp,y-1.3*sp);c.lineTo(cx-.3*sp,y+.45*sp);c.moveTo(cx+.3*sp,y-.45*sp);c.lineTo(cx+.3*sp,y+1.3*sp);c.stroke();
+    [-.35,.35].forEach(o=>{c.beginPath();c.moveTo(cx-.3*sp,y+o*sp+.12*sp);c.lineTo(cx+.3*sp,y+o*sp-.08*sp);c.lineTo(cx+.3*sp,y+o*sp+.14*sp);c.lineTo(cx-.3*sp,y+o*sp+.34*sp);c.closePath();c.fill();});}
+  c.restore();}
 function lineOf(beat){const B=G.sc.bars;let i=0;while(i<B.length-1&&beat>=B[i][1]-1e-6)i++;return i;}
 function lineGeo(k,j,g){const B=G.sc.bars,bs=k*g.bpl,be=Math.min(B.length,bs+g.bpl);if(bs>=B.length)return null;const head=g.head+(k===0?2.4*g.sp:0),x0=g.left+head;
   let tot=0;for(let i=bs;i<be;i++)tot+=B[i][1]-B[i][0];const full=g.bpl*G.bpb,ratio=be-bs<g.bpl?Math.min(1,Math.max(.35,tot/full)):1,xEnd=x0+(g.right-x0)*ratio;
@@ -1014,7 +1021,7 @@ function drawScoreLine(c,k,j,g,cur){const L=lineGeo(k,j,g);if(!L)return null;con
   c.strokeStyle='#5d4a2c';c.lineWidth=1;for(let i=0;i<5;i++){c.beginPath();c.moveTo(g.left,L.st+i*sp);c.lineTo(L.xEnd,L.st+i*sp);c.stroke();}
   c.beginPath();c.moveTo(g.left,L.st);c.lineTo(g.left,L.bot);c.stroke();
   if(clef==='F')glyph(c,'𝄢',g.left+.4*sp,L.st-.05*sp,L.st+3.1*sp,INK);else{glyph(c,'𝄞',g.left+.3*sp,L.st-1.6*sp,L.bot+1.5*sp,INK);if(clef==='G8'){c.fillStyle=INK;c.font=`600 ${Math.round(sp*1.1)}px Fredoka,sans-serif`;c.textAlign='center';c.fillText('8',g.left+1.5*sp,L.bot+2.6*sp);}}
-  for(let i=0;i<Math.abs(key);i++){const p=(flats?KPF:KPS)[i]-(clef==='F'?14:0);accGlyph(c,flats?-1:1,g.left+4*sp+i*1.1*sp,yp(p),sp,INK);}
+  for(let i=0;i<Math.abs(key);i++){const p=(flats?KPF:KPS)[i]-(clef==='F'?14:0);accGlyph(c,flats?-1:1,g.left+(clef==='F'?4.4:3.9)*sp+i*1.15*sp,yp(p),sp,INK);}
   if(k===0){const tx=g.left+g.head+.6*sp;c.fillStyle=INK;c.font=`700 ${Math.round(sp*2.1)}px Georgia,serif`;c.textAlign='center';c.textBaseline='middle';const top=Number.isInteger(G.bpb)?G.bpb:G.bpb*2,btm=Number.isInteger(G.bpb)?4:8;c.fillText(String(top),tx,L.st+sp);c.fillText(String(btm),tx,L.st+3*sp);}
   c.strokeStyle=INK;for(let i=L.bs;i<L.be;i++){const xe=L.xs[i-L.bs][1],last=i===bars.length-1;c.lineWidth=last?1:1.2;c.beginPath();c.moveTo(xe,L.st);c.lineTo(xe,L.bot);c.stroke();if(last){c.lineWidth=.45*sp;c.beginPath();c.moveTo(xe-.25*sp,L.st);c.lineTo(xe-.25*sp,L.bot);c.stroke();}}
   const beams=new Map();{let grp=[];const flush=()=>{if(grp.length>1){const avg=grp.reduce((a,x)=>a+x.pos,0)/grp.length,up=avg<bottom+4,ys=grp.map(x=>yp(x.pos)),y=up?Math.min(...ys)-3.3*sp:Math.max(...ys)+3.3*sp,o={up,y,items:grp,dbl:grp.every(x=>baseDur(x.d)[0]<=.25)};grp.forEach(x=>beams.set(x,o));}grp=[];};
