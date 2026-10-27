@@ -515,7 +515,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
     <div class="field"><label class="label" for="edTitle">Titre</label><input id="edTitle" maxlength="40" placeholder="Mon morceau"></div>
     <div class="field"><label class="label" for="edBpb">Mesure</label><select id="edBpb"><option value="2">2/4</option><option value="3">3/4</option><option value="4">4/4</option><option value="6">6/8 (en croches : 6)</option></select></div>
     <div class="field"><label class="label" for="edPick">Anacrouse</label><select id="edPick"><option value="0">aucune</option><option value="0.5">½ temps</option><option value="1">1 temps</option><option value="1.5">1½ temps</option><option value="2">2 temps</option><option value="3">3 temps</option></select></div>
-    <div class="field"><label class="label" for="edPB">Mesures par étape</label><select id="edPB"><option value="1">1</option><option value="2">2</option><option value="4">4</option><option value="6">6</option><option value="8">8</option><option value="12">12</option><option value="16">16</option><option value="0">tout le morceau</option></select></div>
+    <div class="field"><label class="label" for="edPB">Durée d'une étape</label><select id="edPB"><option value="-30">environ 30 secondes</option><option value="-60">environ 1 minute</option><option value="1">1</option><option value="2">2</option><option value="4">4</option><option value="6">6</option><option value="8">8</option><option value="12">12</option><option value="16">16</option><option value="0">tout le morceau</option></select></div>
     <div class="field"><label class="label" for="edBpm">Tempo (BPM)</label><input id="edBpm" type="number" min="30" max="240" value="90" inputmode="numeric"></div>
   </div>
   <div class="imp"><button class="btn small" id="impBtn">Importer un fichier</button><span class="small muted">MusicXML (.musicxml, .mxl) ou MIDI (.mid), par exemple exporté depuis MuseScore</span><input type="file" id="impFile" hidden></div>
@@ -746,7 +746,7 @@ document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>show(b.dataset.g
 function rankOf(c){let r=RANKS[0],nx=null;for(let i=0;i<RANKS.length;i++){if(c>=RANKS[i][0]){r=RANKS[i];nx=RANKS[i+1]||null;}}return{r,nx};}
 function partBarsOf(song){const v=song.custom?song.partBars:(DB.partSize||{})[song.id];return v==null?4:+v;}
 function bkey(id,i){const sg=songById(id);const pb=sg?partBarsOf(sg):4;return pb===4?i:pb+'b'+i;}
-function getParts(song){let b=0;for(const n of song.notes)b+=n.d;const total=b,pk=song.pickup||0,bpb=song.bpb,pb=partBarsOf(song);const nBars=Math.max(1,Math.ceil((total-pk)/bpb-1e-6));
+function getParts(song){let b=0;for(const n of song.notes)b+=n.d;const total=b,pk=song.pickup||0,bpb=song.bpb,pbRaw=partBarsOf(song),pb=pbRaw<0?Math.max(1,Math.round((-pbRaw*(song.bpm||90)/60)/bpb)):pbRaw;const nBars=Math.max(1,Math.ceil((total-pk)/bpb-1e-6));
   if(pb===0||pb>=nBars)return[{label:'Mesures 1 à '+nBars,start:0,end:total}];const out=[];
   for(let s=0;s<nBars;s+=pb){const st=s===0?0:pk+s*bpb;const en=Math.min(total,pk+(s+pb)*bpb);out.push({label:(pb===1?'Mesure '+(s+1):'Mesures '+(s+1)+' à '+Math.min(s+pb,nBars)),start:st,end:en});}
   const last=out[out.length-1];if(out.length>1&&last&&(last.end-last.start)<bpb*Math.min(pb,2)*.5){out.pop();out[out.length-1].end=total;out[out.length-1].label=out[out.length-1].label.replace(/à \d+$/,'à '+nBars);}
@@ -786,8 +786,8 @@ function renderSong(){const s=CUR;$('#sgTitle').textContent=s.title;$('#mineTxt'
   const gDis=S.set.input==='mic';$('#swGuide').disabled=gDis;$('#swGuide').setAttribute('aria-checked',!gDis&&S.set.guide);
   $('#guideTxt').textContent=gDis?'coupée avec le micro (il l\'entendrait)':'le jeu joue la note avec toi';
   $('#listenBtn').textContent='Écouter le morceau';
-  {const cur=partBarsOf(s),opts=[1,2,4,8,0];if(!opts.includes(cur))opts.splice(opts.length-1,0,cur);const C=$('#pbChips');C.innerHTML='<span class="small muted">mesures par étape</span>';
-    opts.forEach(v=>{const c=document.createElement('button');c.className='chip'+(v===cur?' on':'');c.textContent=v===0?'Tout':String(v);c.onclick=()=>{if(s.custom)s.partBars=v;else{DB.partSize=DB.partSize||{};DB.partSize[s.id]=v;}save();renderSong();};C.appendChild(c);});}
+  {const cur=partBarsOf(s),opts=[-30,-60,2,4,8,0];if(!opts.includes(cur))opts.splice(opts.length-1,0,cur);const C=$('#pbChips');C.innerHTML='<span class="small muted">étapes de</span>';
+    opts.forEach(v=>{const c=document.createElement('button');c.className='chip'+(v===cur?' on':'');c.textContent=v===0?'Tout':v<0?(v===-60?'1 min':(-v)+' s'):v+(v===1?' mesure':' mesures');c.onclick=()=>{if(s.custom)s.partBars=v;else{DB.partSize=DB.partSize||{};DB.partSize[s.id]=v;}save();renderSong();};C.appendChild(c);});}
   const P=getParts(s),L=$('#levelList');L.innerHTML='';
   const entries=P.map((p,i)=>({i,label:'Partie '+(i+1),sub:p.label,num:String(i+1)}));
   if(P.length>1)entries.push({i:P.length,label:'Morceau entier',sub:'Tout d\'un coup, comme au concert',num:'★',full:true});
@@ -1262,7 +1262,7 @@ $('#peDel').onclick=()=>{const b=$('#peDel');if(!b.dataset.c){b.dataset.c='1';b.
 /* ---------- éditeur ---------- */
 let ED=null;
 function openEditor(song){IMP=[];try{$('#impPartRow').hidden=true;$('#impMsg').textContent='';}catch(e){}ED=song?{id:song.id,title:song.title,bpm:song.bpm,bpb:song.bpb,pickup:song.pickup||0,notes:song.notes.map(n=>({...n})),dur:1,sel:-1}:{id:null,title:'',bpm:90,bpb:3,pickup:0,notes:[],dur:1,sel:-1};
-  ED.partBars=song?partBarsOf(song):4;$('#edTitle').value=ED.title;$('#edBpm').value=ED.bpm;$('#edPB').value=String(ED.partBars);$('#edBpb').value=String(ED.bpb);$('#edPick').value=String(ED.pickup);$('#edErr').hidden=true;
+  ED.partBars=song?partBarsOf(song):-30;$('#edTitle').value=ED.title;$('#edBpm').value=ED.bpm;$('#edPB').value=String(ED.partBars);$('#edBpb').value=String(ED.bpb);$('#edPick').value=String(ED.pickup);$('#edErr').hidden=true;
   $('#edH').textContent=(song?'Modifier':'Ajouter')+' ta partition · '+INST.name;$('#gridLbl').textContent=INST.id==='piano'?'2. Note (clavier : touches noires en haut de chaque octave)':INST.id==='guitar'?'2. Note (colonnes = cordes, lignes = cases)':'2. Note (colonnes = cordes, lignes = doigts)';
   buildGrid();document.querySelectorAll('#app>section').forEach(s=>s.hidden=s.id!=='editor');window.scrollTo(0,0);renderEd();}
 (function buildEd(){const d=$('#durs');DURS.forEach(([v,a,b])=>{const bt=document.createElement('button');bt.dataset.d=v;bt.innerHTML=`${a} temps<small>${b}</small>`;bt.onclick=()=>{ED.dur=v;if(ED.sel>=0)ED.notes[ED.sel].d=v;renderEd();};d.appendChild(bt);});})();
