@@ -301,7 +301,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
 <section id="profiles" class="menu" hidden>
   <button class="gear" id="toSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1L15 3.5h-4L10.7 6a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
   <div class="mhead"><h1>L’Île aux Notes</h1><p class="muted">Qui joue aujourd’hui ?</p></div>
-  <p class="ver">version 27.10 · 13h45</p>
+  <p class="ver">version 27.10 · 14h</p>
   <div class="pgrid" id="profList"></div>
 </section>
 <section id="profEdit" class="screen" hidden>
@@ -914,7 +914,7 @@ function tapLane(side,l){if(!G||!G.running||G.paused)return;G.flash[side][l]=1;i
   if(best&&bd<=.2)judge(best,bd<.09?'perfect':'good');}
 function geo(side=0){const w=CV.width/DPR,h=CV.height/DPR,sw=w/G.sides,inst=G.players[side].inst,nl=inst.lanes.length;const tw=Math.min(sw-(G.duo?12:16),nl>4?560:480),x0=side*sw+(sw-tw)/2,lw=tw/nl,hitY=h-Math.max(78,h*.16),ppb=Math.max(80,Math.min(170,h/5.2));return{w,h,sw,sx:side*sw,tw,x0,lw,hitY,ppb,inst,nl};}
 function hexA(h,a){const n=parseInt(h.slice(1),16);return`rgba(${n>>16},${(n>>8)&255},${n&255},${a})`;}
-function burst(e,q){const g=geo(e.who),cx=G.view==='score'&&e._x!=null?e._x:g.x0+(e.lane+.5)*g.lw,hy=G.view==='score'&&e._y!=null?e._y:hy;for(let i=0;i<(q==='perfect'?18:10);i++){const a=Math.random()*Math.PI*2,v=80+Math.random()*220;G.pts.push({x:cx,y:hy,vx:Math.cos(a)*v,vy:Math.sin(a)*v-120,life:.7,c:q==='perfect'?'#f4b43a':COLORS[e.lane]});}}
+function burst(e,q){const g=geo(e.who),cx=G.view==='score'&&e._x!=null?e._x:g.x0+(e.lane+.5)*g.lw,hy=G.view==='score'&&e._y!=null?e._y:g.hitY;for(let i=0;i<(q==='perfect'?18:10);i++){const a=Math.random()*Math.PI*2,v=80+Math.random()*220;G.pts.push({x:cx,y:hy,vx:Math.cos(a)*v,vy:Math.sin(a)*v-120,life:.7,c:q==='perfect'?'#f4b43a':COLORS[e.lane]});}}
 function floatT(e,t,c){const g=geo(e.who);if(G.view==='score'&&e._x!=null){G.floats.push({x:e._x,y:e._y-40,t,c,life:.8});return;}G.floats.push({x:g.x0+(e.lane+.5)*g.lw,y:g.hitY-50,t,c,life:.8});}
 function banner(t){const b=$('#banner');b.textContent=t;b.classList.remove('show');void b.offsetWidth;b.classList.add('show');}
 function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
