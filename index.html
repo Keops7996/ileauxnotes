@@ -147,6 +147,8 @@ p{margin:0}
 .songbar{display:flex;gap:8px;flex-wrap:wrap}
 .songbar input,.songbar select{background:#0b2233;border:1px solid var(--deck-2);border-radius:10px;padding:8px 10px;color:var(--foam);min-width:0}
 .songbar input{flex:1 1 160px}
+.ttl{display:flex;align-items:center;gap:10px}
+.hp{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:50%;background:#1ed760;font-size:1.25rem;text-decoration:none;flex:none;box-shadow:0 2px 0 #12994a}
 .spot{background:linear-gradient(135deg,#123326,#0f2638);border:1px solid #1d5a3c;border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:10px}
 .spot .sph{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .spot .sph b{font-size:1.05rem}
@@ -326,7 +328,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
 <section id="profiles" class="menu" hidden>
   <button class="gear" id="toSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1L15 3.5h-4L10.7 6a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
   <div class="mhead"><h1>L’Île aux Notes</h1><p class="muted">Qui joue aujourd’hui ?</p></div>
-  <p class="ver">version 28.10 · 20h30</p>
+  <p class="ver">version 28.10 · 20h40</p>
   <div class="pgrid" id="profList"></div>
 </section>
 <section id="profEdit" class="screen" hidden>
@@ -374,7 +376,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
 <!-- MORCEAU -->
 <section id="songScr" class="screen" hidden>
   <button class="back" data-go="home">← Le port</button>
-  <div><h2 id="sgTitle"></h2><p class="muted small" id="sgSub"></p></div>
+  <div><div class="ttl"><h2 id="sgTitle"></h2><a class="hp" id="sgSpot" target="_blank" rel="noopener" hidden aria-label="Écouter la vraie version sur Spotify" title="Écouter la vraie version sur Spotify">🎧</a></div><p class="muted small" id="sgSub"></p></div>
   <div class="notice" id="micNotice" hidden>
     <span id="micNoticeTxt">Le micro n'est pas disponible ici.</span>
     <div class="row"><button class="btn small" id="useTap">Jouer au toucher</button></div>
@@ -397,7 +399,6 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
     <div class="toggle"><div><b>Mélodie guide</b><p class="small muted" id="guideTxt">le jeu joue la note avec toi</p></div><button class="switch" id="swGuide" role="switch" aria-checked="false" aria-label="Mélodie guide"></button></div>
     <button class="btn ghost" id="listenBtn">Écouter le morceau</button>
   </div>
-  <div class="spot" id="spotBox"></div>
   <div class="spread"><h3>Choisis une partie <span class="small muted" id="lvMode"></span></h3><div class="chips" id="pbChips"></div></div>
   <div class="levels" id="levelList"></div>
   <div class="row" id="customActs" hidden><button class="btn ghost small" id="editSong">Modifier les notes</button><button class="btn ghost small" id="delSong">Supprimer</button></div>
@@ -1375,16 +1376,9 @@ const spotSearch=t=>'https://open.spotify.com/search/'+encodeURIComponent(String
 function updSpotFind(){const a=$('#edSpotFind');if(a)a.href=spotSearch($('#edTitle').value||'');}
 const CAN_EMBED=/github\.io$|^localhost$|^127\./.test(location.hostname);
 const SPOT_LINES=['Écoute comment sonne le vrai morceau, puis essaie de jouer comme ça !','Repère le rythme en écoutant, puis lance ton exercice.','Les grands musiciens écoutent beaucoup : à toi !'];
-function renderSpot(s){const box=$('#spotBox');if(!box)return;box.hidden=!s.custom;if(!s.custom)return;const sp=spotParse(s.spotify);box.innerHTML='';
-  const h=document.createElement('div');h.className='sph';h.innerHTML='<span style="font-size:1.6rem">🎧</span><span style="flex:1;min-width:0"><b>La vraie version</b><br><span class="small"></span></span>';
-  h.querySelector('.small').textContent=SPOT_LINES[(s.title||'').length%SPOT_LINES.length];box.appendChild(h);
-  const a=document.createElement('a');a.className='spbtn';a.target='_blank';a.rel='noopener';
-  if(sp){a.href='https://open.spotify.com/'+sp.type+'/'+sp.id;a.textContent='▶ Ouvrir dans Spotify';
-    if(CAN_EMBED){const f=document.createElement('iframe');f.src='https://open.spotify.com/embed/'+sp.type+'/'+sp.id+'?utm_source=generator&theme=0';f.loading='lazy';f.allow='autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';f.title='Lecteur Spotify';box.appendChild(f);}
-    box.appendChild(a);}
-  else{a.href=spotSearch(s.title);a.textContent='🔎 Trouver « '+s.title+' » sur Spotify';box.appendChild(a);
-    if(s.custom){const n=document.createElement('p');n.className='spnote';n.textContent='Astuce : colle le lien Spotify du morceau dans « Modifier les notes » pour avoir le lecteur ici.';box.appendChild(n);}}
-  a.addEventListener('click',()=>{const b=award('listen');if(b)setTimeout(()=>banner('Nouveau badge : '+b.t),300);});}
+function renderSpot(s){const a=$('#sgSpot');if(!a)return;a.hidden=!s.custom;if(!s.custom)return;const sp=spotParse(s.spotify);
+  a.href=sp?'https://open.spotify.com/'+sp.type+'/'+sp.id:spotSearch(s.title);a.title=sp?'Écouter la vraie version sur Spotify':'Chercher « '+s.title+' » sur Spotify';}
+$('#sgSpot').addEventListener('click',()=>{const b=award('listen');if(b)setTimeout(()=>banner('Nouveau badge : '+b.t),300);});
 $('#edTitle').addEventListener('input',updSpotFind);
 
 /* ---------- duo ---------- */
