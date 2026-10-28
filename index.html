@@ -338,7 +338,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
   <button class="gear" id="toSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1L15 3.5h-4L10.7 6a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
   <div class="mhead"><h1>L’Île aux Notes</h1><p class="muted">Qui joue aujourd’hui ?</p></div>
   <div class="a2hs" id="a2hs" hidden><span class="a2i">📺</span><span class="a2t"><b>Plein écran pour AirPlay</b><br>Dans Safari : <b>Partager</b> <span class="shr">⬆︎</span> → <b>Sur l’écran d’accueil</b>, puis ouvre l’app depuis sa nouvelle icône : plus de barre d’adresse ni de favoris.</span><button class="a2x" id="a2hsX" aria-label="Fermer">✕</button></div>
-  <p class="ver">version 28.10 · 21h40</p>
+  <p class="ver">version 28.10 · 22h</p>
   <div class="pgrid" id="profList"></div>
 </section>
 <section id="profEdit" class="screen" hidden>
@@ -415,7 +415,9 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
     <p class="small">Sur chaque appareil, ouvre la partition de ton instrument, avec le <b>même tempo</b> (<b id="syncBpm"></b> BPM ici) et la même partie. Puis touchez tous les deux la <b>même heure de départ</b>.</p>
     <div class="slots" id="syncSlots"></div>
     <div class="spread small"><span>Horloge de cet appareil : <b id="syncOff">0</b> ms</span><span class="row"><button class="btn ghost small" id="offM">− 20 ms</button><button class="btn ghost small" id="offP">+ 20 ms</button><button class="btn ghost small" id="syncTest">Bip test</button></span></div>
-    <p class="small muted">Bip test : les deux appareils bipent à chaque seconde. S'ils ne bipent pas ensemble, décale un des deux avec − / +.</p>
+    <div class="row"><button class="btn small" id="asGive">📣 Donner le signal</button><button class="btn small" id="asListen">👂 Se caler sur l'autre</button></div>
+    <p class="small" id="syncAuto">Calage automatique : touche « Donner le signal » sur un appareil, puis « Se caler sur l'autre » sur le second, posés près l'un de l'autre.</p>
+    <p class="small muted">Bip test : les deux appareils bipent à chaque seconde pour vérifier à l'oreille ; − / + pour corriger à la main.</p>
     <button class="btn ghost" id="syncCancel">Annuler</button>
   </div></div>
   <div class="spread"><h3>Choisis une partie <span class="small muted" id="lvMode"></span></h3><div class="chips" id="pbChips"></div></div>
@@ -1415,8 +1417,8 @@ const SYNCUI={part:0,timer:null,test:null};
 const nowE=()=>Date.now()+(DB.clockOff||0);
 function openSync(part){SYNCUI.part=part;$('#syncBpm').textContent=Math.round(CUR.bpm*pct(CUR));$('#syncOff').textContent=(DB.clockOff||0);$('#syncOv').hidden=false;renderSlots();clearInterval(SYNCUI.timer);SYNCUI.timer=setInterval(renderSlots,1000);}
 function closeSync(){$('#syncOv').hidden=true;clearInterval(SYNCUI.timer);stopSyncTest();}
-function renderSlots(){const t=nowE(),first=Math.ceil((t+12000)/10000)*10000,box=$('#syncSlots');box.innerHTML='';
-  for(let i=0;i<6;i++){const at=first+i*10000,b=document.createElement('button');b.textContent=new Date(at-(DB.clockOff||0)).toLocaleTimeString('fr-BE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+function renderSlots(){const t=nowE(),first=Math.ceil((t+12000)/20000)*20000,box=$('#syncSlots');box.innerHTML='';
+  for(let i=0;i<6;i++){const at=first+i*20000,b=document.createElement('button');b.textContent=new Date(at-(DB.clockOff||0)).toLocaleTimeString('fr-BE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
     b.onclick=()=>{closeSync();startGame(SYNCUI.part,at);};box.appendChild(b);}}
 function stopSyncTest(){clearTimeout(SYNCUI.test);SYNCUI.test=null;$('#syncTest').textContent='Bip test';}
 function syncTick(n){if(n<=0){stopSyncTest();return;}const t=nowE(),wait=1000-(t%1000);SYNCUI.test=setTimeout(()=>{click(nowE()%10000<1000);syncTick(n-1);},wait);}
@@ -1424,6 +1426,40 @@ $('#syncTest').onclick=()=>{ac();if(SYNCUI.test){stopSyncTest();return;}$('#sync
 $('#offM').onclick=()=>{DB.clockOff=(DB.clockOff||0)-20;save();$('#syncOff').textContent=DB.clockOff;renderSlots();};
 $('#offP').onclick=()=>{DB.clockOff=(DB.clockOff||0)+20;save();$('#syncOff').textContent=DB.clockOff;renderSlots();};
 $('#syncCancel').onclick=closeSync;
+$('#asGive').onclick=giveSignal;$('#asListen').onclick=listenSync;
+/* ---------- calage automatique des horloges par le son ---------- */
+const AS={busy:false};
+function beepAt(perfMs,freq,dur=.08,vol=.5){const a=ac();const t=Math.max(a.currentTime+.005,a.currentTime+(perfMs-performance.now())/1000);const o=a.createOscillator();o.type='sine';o.frequency.value=freq;const g=a.createGain();
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.003);g.gain.setValueAtTime(vol,t+dur-.01);g.gain.linearRampToValueAtTime(0,t+dur);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+dur+.02);}
+function syncMsg(t,ok){const el=$('#syncAuto');el.textContent=t;el.style.color=ok===false?'var(--coral)':ok?'var(--kelp)':'var(--mist)';}
+async function giveSignal(){if(AS.busy)return;AS.busy=true;ac();syncMsg('📣 Signal en cours (15 s) : lance « Se caler » sur l\'autre appareil…');
+  const p2e=Date.now()-performance.now(),off=DB.clockOff||0,t0=Math.ceil((Date.now()+off+600)/1000)*1000;
+  for(let k=0;k<15;k++){const perf=t0+k*1000-off-p2e;beepAt(perf,2000);}
+  setTimeout(()=>{AS.busy=false;syncMsg('Signal terminé.',true);},15500);}
+function goertzel(buf,start,n,coef){let s1=0,s2=0;for(let i=start;i<start+n;i++){const s=buf[i]+coef*s1-s2;s2=s1;s1=s;}return s1*s1+s2*s2-coef*s1*s2;}
+async function listenSync(){if(AS.busy)return;AS.busy=true;ac();syncMsg('👂 Préparation du micro…');
+  const ok=await startMic();if(!ok){AS.busy=false;syncMsg(micHelp(),false);return;}
+  const a=ac(),sr=a.sampleRate,N=256,cR=2*Math.cos(2*Math.PI*2000/sr),cL=2*Math.cos(2*Math.PI*3000/sr);
+  const sp=a.createScriptProcessor(2048,1,1),mute=a.createGain();mute.gain.value=0;MIC.src.connect(sp);sp.connect(mute);mute.connect(a.destination);
+  const st={R:{floor:[],last:-1e9,on:[]},L:{floor:[],last:-1e9,on:[]}};
+  const det=(S,pw,tMs)=>{S.floor.push(pw);if(S.floor.length>80)S.floor.shift();const f=[...S.floor].sort((x,y)=>x-y)[Math.floor(S.floor.length*.3)]||1e-12;
+    if(S.floor.length>20&&pw>f*25&&pw>1e-7&&tMs-S.last>350){S.last=tMs;S.on.push(tMs);}};
+  sp.onaudioprocess=e=>{const b=e.inputBuffer.getChannelData(0),now=performance.now(),n=b.length;for(let i=0;i+N<=n;i+=N){const tMs=now-(n-i)/sr*1000;det(st.R,goertzel(b,i,N,cR),tMs);det(st.L,goertzel(b,i,N,cL),tMs);}};
+  // boucle locale : on s'écoute soi-même à 3 kHz pour mesurer le retard propre à l'appareil
+  const lb=[];const base=Math.ceil((performance.now()+1500)/1000)*1000+500;for(let k=0;k<6;k++){lb.push(base+k*1000);beepAt(base+k*1000,3000,.08,.35);}
+  syncMsg('👂 J\'écoute le signal de l\'autre appareil… (8 s)');
+  await new Promise(r=>setTimeout(r,8500));sp.onaudioprocess=null;try{sp.disconnect();MIC.src.disconnect(sp);}catch(e){}
+  const med=arr=>{const s=[...arr].sort((x,y)=>x-y);return s.length?s[Math.floor(s.length/2)]:null;};
+  const lat=med(lb.map(t=>{const m=st.L.on.filter(o=>o>t-50&&o<t+400);return m.length?m[0]-t:null;}).filter(x=>x!=null));
+  const p2e=Date.now()-performance.now(),off=DB.clockOff||0;
+  const ds=st.R.on.map(o=>{const e=o+p2e+off-(lat||0);return e-Math.round(e/1000)*1000;});
+  AS.busy=false;if(!$('#tuner').hidden||$('#game').hidden)stopMic();
+  if(lat==null){syncMsg('Je n\'entends pas mon propre bip : monte le volume de cet appareil et réessaie.',false);return;}
+  if(ds.length<3){syncMsg('Signal de l\'autre appareil non entendu : rapproche les appareils, monte le volume, et lance « Donner le signal » d\'abord.',false);return;}
+  const d=med(ds),spread=Math.round(Math.max(...ds)-Math.min(...ds));
+  DB.clockOff=Math.round(off-d);save();$('#syncOff').textContent=DB.clockOff;renderSlots();
+  syncMsg('✓ Calé sur l\'autre appareil : correction de '+(d>0?'−':'+')+Math.abs(Math.round(d))+' ms'+(spread>60?' (signal irrégulier, refais-le si besoin)':''),true);}
+
 
 /* ---------- duo ---------- */
 
