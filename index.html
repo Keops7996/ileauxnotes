@@ -161,6 +161,11 @@ p{margin:0}
 .av.big{width:84px;height:84px;font-size:2.8rem}
 .menu{height:100%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;gap:clamp(10px,3vh,24px);max-width:900px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px;overflow:hidden}
 .ver{position:absolute;left:max(16px,env(safe-area-inset-left,0px));bottom:max(6px,env(safe-area-inset-bottom,0px));margin:0;font-size:.7rem;color:var(--mist);opacity:.6}
+.a2hs{position:absolute;left:50%;transform:translateX(-50%);bottom:max(10px,env(safe-area-inset-bottom,0px));width:min(560px,calc(100% - 32px));display:flex;gap:10px;align-items:center;background:var(--deck-2);border-radius:14px;padding:10px 12px;box-shadow:0 6px 20px rgba(0,0,0,.35);z-index:3}
+.a2i{font-size:1.6rem}
+.a2t{flex:1;min-width:0;font-size:.85rem;line-height:1.35}
+.shr{display:inline-block;padding:0 5px;border-radius:5px;background:#0b2233}
+.a2x{width:32px;height:32px;border-radius:50%;background:#0b2233;color:var(--mist);flex:none}
 .mhead{text-align:center;display:flex;flex-direction:column;gap:2px}
 .mhead h1{font-size:clamp(1.8rem,7vh,3rem)}
 .pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:clamp(8px,2vh,14px);align-content:center}
@@ -328,7 +333,8 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
 <section id="profiles" class="menu" hidden>
   <button class="gear" id="toSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1L15 3.5h-4L10.7 6a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
   <div class="mhead"><h1>L’Île aux Notes</h1><p class="muted">Qui joue aujourd’hui ?</p></div>
-  <p class="ver">version 28.10 · 20h40</p>
+  <div class="a2hs" id="a2hs" hidden><span class="a2i">📺</span><span class="a2t"><b>Plein écran pour AirPlay</b><br>Dans Safari : <b>Partager</b> <span class="shr">⬆︎</span> → <b>Sur l’écran d’accueil</b>, puis ouvre l’app depuis sa nouvelle icône : plus de barre d’adresse ni de favoris.</span><button class="a2x" id="a2hsX" aria-label="Fermer">✕</button></div>
+  <p class="ver">version 28.10 · 20h50</p>
   <div class="pgrid" id="profList"></div>
 </section>
 <section id="profEdit" class="screen" hidden>
@@ -1484,7 +1490,10 @@ function profStats(p){const wk=weekDays(),tm=p.time||{};const played=wk.map(d=>(
   return{wk,played,days:played.filter(Boolean).length,mins,stars,songs,ever:Object.keys(tm).length>0||p.coins>0};}
 function cheer(st,name){if(st.days>=4)return'Quelle belle semaine de musique !';if(st.days>=2)return'Ton instrument est content de te voir !';if(st.days===1)return'Bravo, tu as déjà joué cette semaine.';if(st.ever)return'Le bateau t\'attend pour une nouvelle aventure.';return'Prêt pour ta première aventure ?';}
 function badgeHTML(p){return ACH.map(a=>{const got=(p.ach||{})[a.id];return '<div class="badge'+(got?' got':'')+'"><span class="bi">'+a.i+'</span><span><b>'+a.t+'</b><br><span class="small">'+a.d+'</span></span></div>';}).join('');}
-function renderProfiles(){const L=$('#profList');L.innerHTML='';const td=today();
+function a2hsCheck(){const ios=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);const sa=navigator.standalone===true||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||(window.matchMedia&&matchMedia('(display-mode: fullscreen)').matches);
+  let off=false;try{off=localStorage.getItem('ian-a2hs-off')==='1';}catch(e){}const inClaude=!/github\.io$/.test(location.hostname);$('#a2hs').hidden=!ios||sa||off||inClaude;}
+$('#a2hsX').onclick=()=>{try{localStorage.setItem('ian-a2hs-off','1');}catch(e){}$('#a2hs').hidden=true;};
+function renderProfiles(){a2hsCheck();const L=$('#profList');L.innerHTML='';const td=today();
   DB.profiles.forEach(p=>{const st=profStats(p);const nb=ACH.filter(a=>(p.ach||{})[a.id]).length;const t=document.createElement('div');t.className='tile';t.style.setProperty('--pc',p.color);
     t.innerHTML=`<button class="tpick" aria-label="Jouer"><span class="av"></span><b class="tname"></b><span class="tinst"></span>
       <span class="tweek">${st.wk.map((d,i)=>`<i class="${st.played[i]?'on':''}${d===td?' today':''}"></i>`).join('')}</span>
