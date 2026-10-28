@@ -302,7 +302,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
 <section id="profiles" class="menu" hidden>
   <button class="gear" id="toSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1L15 3.5h-4L10.7 6a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
   <div class="mhead"><h1>L’Île aux Notes</h1><p class="muted">Qui joue aujourd’hui ?</p></div>
-  <p class="ver">version 28.10 · 19h</p>
+  <p class="ver">version 28.10 · 19h15</p>
   <div class="pgrid" id="profList"></div>
 </section>
 <section id="profEdit" class="screen" hidden>
@@ -738,8 +738,9 @@ let NSDF=null;
 function analyze(now){if(!MIC.ok||now-MIC.last<30)return;MIC.last=now;MIC.seq++;const b=MIC.buf;MIC.an.getFloatTimeDomainData(b);
   const W=2048;let rms=0;for(let i=0;i<W;i++)rms+=b[i]*b[i];rms=Math.sqrt(rms/W);MIC.rms=rms;
   const thr=micThr();{let rr=0;for(let i=3072;i<4096;i++)rr+=b[i]*b[i];rr=Math.sqrt(rr/1024);
-    if(MIC.rising){if(rr>MIC.peak)MIC.peak=rr;else if(rr<.8*MIC.peak){MIC.rising=false;MIC.low=rr;}}else if(rr<MIC.low)MIC.low=rr;
-    if(rr>=thr&&now-MIC.onsetT>80&&(MIC.quiet>=2||(!MIC.rising&&rr>MIC.low*1.5))){MIC.onsets++;MIC.onsetT=now;MIC.rising=true;MIC.peak=rr;}
+    MIC.env=(MIC.env||0)*.4+rr*.6;const env=MIC.env;
+    if(MIC.rising){if(env>MIC.peak)MIC.peak=env;else if(env<.75*MIC.peak){MIC.rising=false;MIC.low=env;}}else if(env<MIC.low)MIC.low=env;
+    if(env>=3*thr&&now-MIC.onsetT>100&&(MIC.quiet>=3||(!MIC.rising&&env>MIC.low*1.8&&env-MIC.low>2*thr))){MIC.onsets++;MIC.onsetT=now;MIC.rising=true;MIC.peak=env;}
     MIC.quiet=rr<thr?MIC.quiet+1:0;}
   if(rms<thr){noPitch();return;}
   const sr=MIC.sr,minL=Math.floor(sr/1500),maxL=Math.min(Math.floor(sr/58),4096-W-2);
