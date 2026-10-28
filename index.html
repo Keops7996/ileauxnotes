@@ -156,6 +156,10 @@ p{margin:0}
 .spot .spbtn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:999px;background:#1ed760;color:#0b1a12;font-weight:700;text-decoration:none}
 .spot iframe{width:100%;height:152px;border:0;border-radius:12px;background:#0b2233}
 .spot .spnote{font-size:.85rem;color:var(--mist)}
+.syncov{position:fixed;z-index:20}
+.syncov .box{max-width:460px}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.slots button{padding:12px 6px;border-radius:12px;background:var(--parch);color:var(--ink);font-weight:700;font-size:1.05rem;font-variant-numeric:tabular-nums}
 .seg3{grid-template-columns:repeat(3,1fr)}
 .av{width:40px;height:40px;border-radius:50%;display:inline-grid;place-items:center;font-size:1.4rem;background:var(--gold);flex:none;box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
 .av.big{width:84px;height:84px;font-size:2.8rem}
@@ -334,7 +338,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
   <button class="gear" id="toSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1L15 3.5h-4L10.7 6a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
   <div class="mhead"><h1>L’Île aux Notes</h1><p class="muted">Qui joue aujourd’hui ?</p></div>
   <div class="a2hs" id="a2hs" hidden><span class="a2i">📺</span><span class="a2t"><b>Plein écran pour AirPlay</b><br>Dans Safari : <b>Partager</b> <span class="shr">⬆︎</span> → <b>Sur l’écran d’accueil</b>, puis ouvre l’app depuis sa nouvelle icône : plus de barre d’adresse ni de favoris.</span><button class="a2x" id="a2hsX" aria-label="Fermer">✕</button></div>
-  <p class="ver">version 28.10 · 21h05</p>
+  <p class="ver">version 28.10 · 21h40</p>
   <div class="pgrid" id="profList"></div>
 </section>
 <section id="profEdit" class="screen" hidden>
@@ -399,12 +403,21 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
       <input type="range" id="tpRange" min="30" max="200" step="1" aria-label="Tempo">
       <div class="chips" id="tpChips"><button class="chip" data-p="0.5">50 %</button><button class="chip" data-p="0.75">75 %</button><button class="chip" data-p="1">100 %</button></div>
     </div>
+    <div class="toggle"><div><b>Départ synchronisé</b><p class="small muted">jouer en même temps sur 2 appareils</p></div><button class="switch" id="swSync" role="switch" aria-checked="false" aria-label="Départ synchronisé"></button></div>
     <div class="toggle"><div><b>Jouer en boucle</b><p class="small muted">la partie recommence toute seule</p></div><button class="switch" id="swLoop" role="switch" aria-checked="false" aria-label="Jouer en boucle"></button></div>
     <div class="toggle" id="countRow"><div><b>Décompte à chaque tour</b><p class="small muted">sinon on enchaîne directement</p></div><button class="switch" id="swCount" role="switch" aria-checked="true" aria-label="Décompte à chaque tour"></button></div>
     <div class="toggle"><div><b>Métronome</b><p class="small muted">un clic à chaque temps</p></div><button class="switch" id="swMetro" role="switch" aria-checked="true" aria-label="Métronome"></button></div>
     <div class="toggle"><div><b>Mélodie guide</b><p class="small muted" id="guideTxt">le jeu joue la note avec toi</p></div><button class="switch" id="swGuide" role="switch" aria-checked="false" aria-label="Mélodie guide"></button></div>
     <button class="btn ghost" id="listenBtn">Écouter le morceau</button>
   </div>
+  <div class="overlay syncov" id="syncOv" hidden><div class="box">
+    <h3>Départ synchronisé</h3>
+    <p class="small">Sur chaque appareil, ouvre la partition de ton instrument, avec le <b>même tempo</b> (<b id="syncBpm"></b> BPM ici) et la même partie. Puis touchez tous les deux la <b>même heure de départ</b>.</p>
+    <div class="slots" id="syncSlots"></div>
+    <div class="spread small"><span>Horloge de cet appareil : <b id="syncOff">0</b> ms</span><span class="row"><button class="btn ghost small" id="offM">− 20 ms</button><button class="btn ghost small" id="offP">+ 20 ms</button><button class="btn ghost small" id="syncTest">Bip test</button></span></div>
+    <p class="small muted">Bip test : les deux appareils bipent à chaque seconde. S'ils ne bipent pas ensemble, décale un des deux avec − / +.</p>
+    <button class="btn ghost" id="syncCancel">Annuler</button>
+  </div></div>
   <div class="spread"><h3>Choisis une partie <span class="small muted" id="lvMode"></span></h3><div class="chips" id="pbChips"></div></div>
   <div class="levels" id="levelList"></div>
   <div class="row" id="customActs" hidden><button class="btn ghost small" id="editSong">Modifier les notes</button><button class="btn ghost small" id="delSong">Supprimer</button></div>
@@ -509,6 +522,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
 <section id="duo" class="screen" hidden>
   <button class="back" data-go="profiles">← Menu</button>
   <h2>Jouer en duo</h2>
+  <p class="small muted">Deux appareils, deux instruments ? Sur chacun, ouvre la partition de ton instrument et active « Départ synchronisé ».</p>
   <div class="notice" id="duoNotice" hidden></div>
   <div><span class="label">Choisis 2 musiciens</span><div class="duopick" id="duoPick" style="margin-top:8px"></div></div>
   <div class="panel">
@@ -872,7 +886,7 @@ function renderSong(){const s=CUR;$('#sgTitle').textContent=s.title;try{renderSp
   setSeg($('#segMode'),S.set.mode);{const mic=S.set.input==='mic';$('#inputBtn').textContent=mic?'🎤 Micro':'👆 Écran';$('#inputTxt').textContent=mic?'le micro écoute ton instrument':'tu touches les cordes à l\'écran';}setSeg($('#segView'),S.set.view||'fall');
   $('#micNotice').hidden=true;
   updTempo();
-  $('#swMetro').setAttribute('aria-checked',S.set.metro);$('#swLoop').setAttribute('aria-checked',!!S.set.loop);$('#swCount').setAttribute('aria-checked',S.set.countIn!==false);$('#countRow').hidden=!S.set.loop;
+  $('#swMetro').setAttribute('aria-checked',S.set.metro);$('#swSync').setAttribute('aria-checked',!!S.set.sync);$('#swLoop').setAttribute('aria-checked',!!S.set.loop);$('#swCount').setAttribute('aria-checked',S.set.countIn!==false);$('#countRow').hidden=!S.set.loop;
   const gDis=S.set.input==='mic';$('#swGuide').disabled=gDis;$('#swGuide').setAttribute('aria-checked',!gDis&&S.set.guide);
   $('#guideTxt').textContent=gDis?'coupée avec le micro (il l\'entendrait)':'le jeu joue la note avec toi';
   $('#listenBtn').textContent='Écouter le morceau';
@@ -887,7 +901,7 @@ function renderSong(){const s=CUR;$('#sgTitle').textContent=s.title;try{renderSp
     const bt=document.createElement('button');bt.className='level'+(unlocked?'':' locked')+(e.full?' full':'');
     bt.innerHTML=`<span class="num">${unlocked?e.num:'<svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10V7a5 5 0 0 1 10 0v3h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm2 0h6V7a3 3 0 0 0-6 0z"/></svg>'}</span><span><b></b><br><span class="small"></span></span><span class="stars">${[0,1,2].map(k=>STAR.replace('<svg','<svg class="'+(k<b.stars?'on':'')+'"')).join('')}</span>`;
     bt.querySelector('b').textContent=e.label;bt.querySelector('.small').textContent=unlocked?(b.score?e.sub+' · record '+(viewMode()==='rhythm'?'Défi ':'Entraînement ')+b.score:e.sub):'Gagne 1 étoile avant pour débloquer';
-    if(unlocked)bt.onclick=()=>startGame(e.i);L.appendChild(bt);}
+    if(unlocked)bt.onclick=()=>{if(S.set.sync)openSync(e.i);else startGame(e.i);};L.appendChild(bt);}
   $('#customActs').hidden=!s.custom;$('#delSong').textContent='Supprimer';$('#delSong').dataset.c='';
 }
 function updTempo(){const s=CUR,b=Math.round(s.bpm*pct(s));$('#tpVal').textContent=b;$('#tpRange').value=b;$('#tpOrig').textContent='tempo d\'origine : '+s.bpm;
@@ -901,6 +915,7 @@ $('#segView').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.set.
 $('#inputBtn').onclick=()=>{S.set.input=S.set.input==='mic'?'tap':'mic';save();renderSong();};
 $('#tpRange').oninput=e=>{S.set.pct[CUR.id]=e.target.value/CUR.bpm;save();updTempo();};
 $('#tpChips').onclick=e=>{const c=e.target.closest('.chip');if(!c)return;S.set.pct[CUR.id]=parseFloat(c.dataset.p);save();updTempo();};
+$('#swSync').onclick=()=>{S.set.sync=!S.set.sync;save();renderSong();};
 $('#swLoop').onclick=()=>{S.set.loop=!S.set.loop;save();renderSong();};
 $('#swCount').onclick=()=>{S.set.countIn=S.set.countIn===false;save();renderSong();};
 $('#swMetro').onclick=()=>{S.set.metro=!S.set.metro;save();$('#swMetro').setAttribute('aria-checked',S.set.metro);};
@@ -931,10 +946,11 @@ function micHelp(){const ios=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navi
   if(MIC.err==='NotAllowedError'||MIC.err==='SecurityError')return 'L\'accès au micro a été refusé.'+(ios?' Va dans Réglages de l\'iPhone → '+(safari?'Safari → Microphone':'ton navigateur (par exemple Brave) → Microphone')+' et autorise-le, puis recharge la page.':' Autorise le micro pour ce site (icône à gauche de l\'adresse), puis recharge la page.')+(ios&&!safari?' Si l\'option n\'existe pas, ce navigateur ne gère pas le micro : utilise Safari.':'');
   if(MIC.err==='NotFoundError')return 'Aucun micro n\'a été trouvé sur cet appareil.';
   return 'Le micro n\'a pas pu démarrer.'+(ios?' Recharge la page et réessaie ; vérifie aussi Réglages → Safari → Microphone.':'')+' Sinon, joue au toucher.'+(MIC.errMsg?' (détail : '+MIC.errMsg+')':'');}
-async function startGame(partIdx){
+let SYNC_AT=null;
+async function startGame(partIdx,syncAt){SYNC_AT=syncAt||null;
   stopListen();ac();
   if(S.set.input==='mic'){const ok=await startMic();if(!ok){$('#micNotice').hidden=false;$('#micNoticeTxt').textContent=micHelp();window.scrollTo({top:0,behavior:'smooth'});return;}}
-  const song=CUR;runGame({song,partIdx,hand:S.set.hand,looping:!!S.set.loop,players:[{p:S,inst:INST,shift:0}],kind:'solo',mode:S.set.mode,input:S.set.input,metro:S.set.metro,guide:S.set.guide,bpm:Math.round(song.bpm*pct(song))});
+  const song=CUR;runGame({syncAt:SYNC_AT,song,partIdx,hand:S.set.hand,looping:!!S.set.loop,players:[{p:S,inst:INST,shift:0}],kind:'solo',mode:S.set.mode,input:S.set.input,metro:S.set.metro,guide:S.set.guide,bpm:Math.round(song.bpm*pct(song))});
 }
 async function startDuo(song){
   stopListen();ac();const D=DB.duo;
@@ -961,6 +977,7 @@ function runGame(o){
   G.view=kind==='solo'?(S.set.view||'fall'):'fall';G.disp=disp;G.pk0=start===0?pk:0;if(G.view==='score')prepScore();
   G.hand=useL?'left':'right';G.canHand=kind==='solo'&&!!(song.left&&song.left.length);const hb=$('#handBtn');hb.hidden=!G.canHand;hb.textContent=G.hand==='left'?'✋ Main gauche':'✋ Main droite';
   G.looping=!!o.looping||!!o.loopFrom;G.round=o.loopFrom?(o.loopFrom.round||1)+1:1;
+  if(o.syncAt){G.syncAt=o.syncAt;G.mode='rhythm';if(o.loopFrom&&S.set.countIn===false)G.beat=firstBar-.001;G.beat0=G.beat;}
   if(o.loopFrom){G.loop=o.loopFrom.loop;G.t0=performance.now();if(S.set.countIn===false)G.beat=firstBar-.001;G.lastTs=performance.now();return;}
   if(o.keep){const K=o.keep;G.round=K.round;G.looping=K.looping;['t0','beat','score','combo','maxCombo','counts','paused','lastTs','loop','pts','floats'].forEach(f=>G[f]=K[f]);Object.assign(G.players[0],{score:K.players[0].score,combo:K.players[0].combo,maxCombo:K.players[0].maxCombo,counts:K.players[0].counts});
     G.mixed=true;G.events.forEach(e=>{if(e.beat<K.beat-1e-6)e.state='skip';});G.waiting=false;banner(G.hand==='left'?'Main gauche':'Main droite');return;}
@@ -968,7 +985,7 @@ function runGame(o){
   G.loop=++LOOPID;const id=G.loop;show('game');resizeCanvas();wake();requestAnimationFrame(t=>frame(t,id));
 }
 let LOOPID=0;
-function loopRestart(old){runGame({song:old.song,partIdx:old.partIdx,hand:old.hand,players:[{p:S,inst:old.inst,shift:0}],kind:'solo',mode:old.calm?'calm':old.mode,input:old.input,metro:old.metro,guide:old.guide,bpm:old.bpm,loopFrom:old});G.running=true;wake();}
+function loopRestart(old){let syncAt;if(old.syncAt){const L=Math.ceil((old.endBeat-old.barRef)/old.bpb-1e-6)*old.bpb+old.barRef-old.beat0;syncAt=old.syncAt+(L+old.bpb)*old.spb*1000;}runGame({syncAt,song:old.song,partIdx:old.partIdx,hand:old.hand,players:[{p:S,inst:old.inst,shift:0}],kind:'solo',mode:old.calm?'calm':old.mode,input:old.input,metro:old.metro,guide:old.guide,bpm:old.bpm,loopFrom:old});G.running=true;wake();}
 function switchHand(){if(!G||!G.running||!G.canHand)return;const old=G,nh=old.hand==='left'?'right':'left';S.set.hand=nh;save();
   runGame({song:old.song,partIdx:old.partIdx,players:[{p:S,inst:old.inst,shift:0}],kind:'solo',mode:old.calm?'calm':old.mode,input:old.input,metro:old.metro,guide:old.guide,bpm:old.bpm,hand:nh,keep:old});}
 function frame(ts,id){if(!G||!G.running||id!==G.loop)return;const dt=Math.min(.05,(ts-G.lastTs)/1000);G.lastTs=ts;
@@ -980,12 +997,13 @@ function advanceTo(nb){const pb=G.beat;
   G.beat=nb;}
 const pendGroup=()=>{const f=G.events.find(e=>!e.state);if(!f)return[];return G.events.filter(e=>!e.state&&Math.abs(e.beat-f.beat)<1e-6);};
 function step(dt,ts){
+  if(G.syncAt){const nowE=Date.now()+(DB.clockOff||0);if(nowE<G.syncAt){G.syncWait=Math.ceil((G.syncAt-nowE)/1000);return;}G.syncWait=0;}
   if(G.mode==='wait'){
     const grp=pendGroup(),pend=grp[0];
     if(pend&&G.input==='mic'){const near=(pend.beat-G.beat)*G.spb<.18;const ok=grp.filter(e=>matches(e.midi)&&canHit(e.midi));if((G.waiting||near)&&ok.length){ok.forEach(e=>hitWait(e,ts));return;}}
     if(!G.waiting){const nb=G.beat+dt/G.spb;if(pend&&nb>=pend.beat){advanceTo(pend.beat);G.waiting=true;G.waitStart=ts;if(G.guide)tone(pend.midi,.7,0,.12,null,G.players[pend.who].inst.id);}else advanceTo(nb);}
   }else{
-    advanceTo(G.beat+dt/G.spb);const now=G.beat*G.spb;let fb=null,jb=false;
+    advanceTo(G.syncAt?Math.max(G.beat,G.beat0+(Date.now()+(DB.clockOff||0)-G.syncAt)/1000/G.spb):G.beat+dt/G.spb);const now=G.beat*G.spb;let fb=null,jb=false;
     for(const e of G.events){if(e.state)continue;const st=e.beat*G.spb;if(now<st-.2)break;const late=G.input==='mic'?Math.max(.25,.75*e.dur*G.spb):.2;
       if(now>st+late){miss(e);continue;}
       if(fb===null)fb=e.beat;else if(Math.abs(e.beat-fb)>1e-6)break;
@@ -999,7 +1017,7 @@ function judge(e,q){e.state=q;if(G.input==='mic'){G.lastHitMidi=e.midi;G.lastHit
   const mult=Math.min(4,1+Math.floor(pl.combo/8)),pts=(q==='perfect'?100:60)*mult;pl.score+=pts;G.score+=pts;burst(e,q);if(G.calm){floatT(e,['Bien !','Super !','Oui !','Bravo !'][Math.floor(Math.random()*4)],'#8fd16a');}else floatT(e,q==='perfect'?'Parfait !':'Bien',q==='perfect'?'#f4b43a':'#62b6de');
   if(!G.calm&&G.combo%10===0)banner((G.duo?'Équipe : combo ':'Combo ')+G.combo+' !');else if(!G.duo&&(G.combo===8||G.combo===16||G.combo===24))banner('Points x'+mult);
   if(G.input==='tap'&&!G.guide)tone(e.midi,Math.min(e.dur*G.spb*.9,1.2),0,G.duo?.1:.14,null,G.players[e.who].inst.id);}
-function miss(e){e.state='miss';const pl=G.players[e.who];pl.counts.miss++;pl.combo=0;G.counts.miss++;G.combo=0;floatT(e,'Raté','#e8846a');}
+function miss(e){e.state='miss';const pl=G.players[e.who];pl.counts.miss++;pl.combo=0;G.counts.miss++;G.combo=0;if(!G.calm)floatT(e,'Raté','#e8846a');}
 function tapLane(side,l){if(!G||!G.running||G.paused)return;G.flash[side][l]=1;if(G.input!=='tap')return;
   if(G.mode==='wait'){const grp=pendGroup();const n=grp.find(e=>e.who===side);if(!n){return;}if(n.lane===l&&(G.waiting||(n.beat-G.beat)*G.spb<.3))hitWait(n,performance.now());else if(G.waiting)G.wrong[side][l]=1;return;}
   const now=G.beat*G.spb;let best=null,bd=1e9;for(const e of G.events){if(e.beat*G.spb-now>.5)break;if(e.state||e.who!==side||e.lane!==l)continue;const d=Math.abs(e.beat*G.spb-now);if(d<bd){bd=d;best=e;}}
@@ -1048,7 +1066,9 @@ function draw(dt){const c=CTX,w=CV.width/DPR,h=CV.height/DPR;c.clearRect(0,0,w,h
   G.pts=G.pts.filter(p=>p.life>0);c.globalAlpha=1;
   for(const f of G.floats){f.life-=dt;f.y-=40*dt;if(f.life>0){c.globalAlpha=Math.min(1,f.life*2);c.fillStyle=f.c;c.font='700 20px Fredoka, sans-serif';c.textAlign='center';c.fillText(f.t,f.x,f.y);}}
   G.floats=G.floats.filter(f=>f.life>0);c.globalAlpha=1;
-  if(G.beat<0&&!G.paused){c.fillStyle='rgba(244,180,58,.9)';c.font=`400 ${Math.round(Math.min(w,h)*.22)}px 'Pirata One', Georgia, serif`;c.textAlign='center';c.textBaseline='middle';c.fillText(String(Math.ceil(-G.beat)),w/2,h*.38);
+  if(G.syncWait>0&&!G.paused){c.fillStyle='rgba(5,14,22,.75)';c.fillRect(0,0,w,h);c.fillStyle='#f4b43a';c.font=`400 ${Math.round(Math.min(w,h)*.2)}px 'Pirata One', Georgia, serif`;c.textAlign='center';c.textBaseline='middle';c.fillText(String(G.syncWait),w/2,h*.42);
+    c.font='600 17px Fredoka, sans-serif';c.fillStyle='#e2eef4';c.fillText('Départ synchronisé · '+G.bpm+' BPM · '+new Date(G.syncAt-(DB.clockOff||0)).toLocaleTimeString('fr-BE'),w/2,h*.42+Math.min(w,h)*.14);return;}
+  if(G.beat<0&&!G.paused&&!G.syncWait){c.fillStyle='rgba(244,180,58,.9)';c.font=`400 ${Math.round(Math.min(w,h)*.22)}px 'Pirata One', Georgia, serif`;c.textAlign='center';c.textBaseline='middle';c.fillText(String(Math.ceil(-G.beat)),w/2,h*.38);
     c.font='600 16px Fredoka, sans-serif';c.fillStyle='#e2eef4';c.fillText(G.duo?(G.kind==='relay'?'Chacun son tour, 2 mesures chacun':'Ensemble, les mêmes notes'):(G.mode==='wait'?G.inst.ready:'Écoute le métronome…'),w/2,h*.38+Math.min(w,h)*.14);}
 }
 function hud(){if(G.calm){$('#hudScore').textContent='Douceur';$('#hudCombo').textContent='on apprend sans points';$('#hudProg').style.width=(G.events.length?G.events.filter(e=>e.state).length/G.events.length*100:0)+'%';if(G.input==='mic'){const h=$('#hudHear'),[t,ok]=heardTxt(pendGroup());h.textContent=t;h.classList.toggle('ok',ok);}return;}
@@ -1390,7 +1410,23 @@ function renderSpot(s){const a=$('#sgSpot');if(!a)return;a.hidden=!s.custom;if(!
 $('#sgSpot').addEventListener('click',()=>{const b=award('listen');if(b)setTimeout(()=>banner('Nouveau badge : '+b.t),300);});
 $('#edTitle').addEventListener('input',updSpotFind);
 
+/* ---------- départ synchronisé (2 appareils) ---------- */
+const SYNCUI={part:0,timer:null,test:null};
+const nowE=()=>Date.now()+(DB.clockOff||0);
+function openSync(part){SYNCUI.part=part;$('#syncBpm').textContent=Math.round(CUR.bpm*pct(CUR));$('#syncOff').textContent=(DB.clockOff||0);$('#syncOv').hidden=false;renderSlots();clearInterval(SYNCUI.timer);SYNCUI.timer=setInterval(renderSlots,1000);}
+function closeSync(){$('#syncOv').hidden=true;clearInterval(SYNCUI.timer);stopSyncTest();}
+function renderSlots(){const t=nowE(),first=Math.ceil((t+12000)/10000)*10000,box=$('#syncSlots');box.innerHTML='';
+  for(let i=0;i<6;i++){const at=first+i*10000,b=document.createElement('button');b.textContent=new Date(at-(DB.clockOff||0)).toLocaleTimeString('fr-BE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    b.onclick=()=>{closeSync();startGame(SYNCUI.part,at);};box.appendChild(b);}}
+function stopSyncTest(){clearTimeout(SYNCUI.test);SYNCUI.test=null;$('#syncTest').textContent='Bip test';}
+function syncTick(n){if(n<=0){stopSyncTest();return;}const t=nowE(),wait=1000-(t%1000);SYNCUI.test=setTimeout(()=>{click(nowE()%10000<1000);syncTick(n-1);},wait);}
+$('#syncTest').onclick=()=>{ac();if(SYNCUI.test){stopSyncTest();return;}$('#syncTest').textContent='Arrêter';syncTick(12);};
+$('#offM').onclick=()=>{DB.clockOff=(DB.clockOff||0)-20;save();$('#syncOff').textContent=DB.clockOff;renderSlots();};
+$('#offP').onclick=()=>{DB.clockOff=(DB.clockOff||0)+20;save();$('#syncOff').textContent=DB.clockOff;renderSlots();};
+$('#syncCancel').onclick=closeSync;
+
 /* ---------- duo ---------- */
+
 function renderDuo(){const D=DB.duo;D.sel=D.sel.filter(id=>DB.profiles.some(p=>p.id===id));$('#duoNotice').hidden=true;
   const pk=$('#duoPick');pk.innerHTML='';DB.profiles.forEach(p=>{const b=document.createElement('button');const i=D.sel.indexOf(p.id);if(i>=0)b.className='on';
     b.innerHTML='<span class="ord"></span><span class="av"></span><b></b><span class="small"></span>';b.querySelector('.ord').textContent=i===0?'à gauche':i===1?'à droite':'';
