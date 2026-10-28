@@ -317,7 +317,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
 <section id="profiles" class="menu" hidden>
   <button class="gear" id="toSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1L15 3.5h-4L10.7 6a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
   <div class="mhead"><h1>L’Île aux Notes</h1><p class="muted">Qui joue aujourd’hui ?</p></div>
-  <p class="ver">version 28.10 · 19h40</p>
+  <p class="ver">version 28.10 · 19h50</p>
   <div class="pgrid" id="profList"></div>
 </section>
 <section id="profEdit" class="screen" hidden>
@@ -357,7 +357,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
   </div>
   <details class="panel mbadges" id="homeBadges"><summary><span class="label">Mes badges</span> <span class="bicons" id="hbIcons"></span></summary><div class="blist" id="hbList"></div></details>
   <div class="spread"><h2>Tes morceaux</h2><div class="row"><button class="btn ghost small" id="testSnd">Tester le son</button><button class="btn ghost small" id="toTuner">Accordeur</button></div></div>
-  <div class="songbar" id="songBar"><input id="songQ" placeholder="Rechercher…" autocomplete="off" aria-label="Rechercher un morceau"><select id="songSort" aria-label="Trier"><option value="recent">Plus récentes</option><option value="az">A → Z</option><option value="long">Plus longues</option><option value="short">Plus courtes</option></select></div>
+  <div class="songbar" id="songBar"><input id="songQ" placeholder="Rechercher…" autocomplete="off" aria-label="Rechercher un morceau"><select id="songSort" aria-label="Trier"><option value="played">Dernier joué</option><option value="recent">Plus récentes</option><option value="az">A → Z</option><option value="long">Plus longues</option><option value="short">Plus courtes</option></select></div>
   <div class="chips" id="songCats"></div>
   <div class="songs" id="songList"></div>
 </section>
@@ -481,7 +481,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
   <button class="back" data-go="profiles">← Menu</button>
   <div class="spread"><h2>Partitions</h2><button class="btn small" id="libAdd">+ Ajouter une partition</button></div>
   <p class="small muted">Toutes les partitions de la famille. Pas besoin de choisir un musicien pour en ajouter.</p>
-  <div class="libbar"><input id="libQ" placeholder="Rechercher un titre…" autocomplete="off" aria-label="Rechercher"><select id="libSort" aria-label="Trier"><option value="recent">Plus récentes</option><option value="az">A → Z</option><option value="long">Plus longues</option><option value="short">Plus courtes</option></select></div>
+  <div class="libbar"><input id="libQ" placeholder="Rechercher un titre…" autocomplete="off" aria-label="Rechercher"><select id="libSort" aria-label="Trier"><option value="played">Dernier joué</option><option value="recent">Plus récentes</option><option value="az">A → Z</option><option value="long">Plus longues</option><option value="short">Plus courtes</option></select></div>
   <div class="chips" id="libInst"></div>
   <div class="chips" id="libCats"></div>
   <p class="small muted" id="libCount"></p>
@@ -829,7 +829,7 @@ function renderHome(){
   const base=allSongs(),cats=allCats(base);if(HS.cat&&HS.cat!=='__builtin'&&!cats.includes(HS.cat))HS.cat='';$('#songBar').hidden=base.length<6;$('#songQ').value=HS.q;$('#songSort').value=HS.sort;
   $('#songCats').hidden=!cats.length;if(cats.length)chipRow($('#songCats'),[['','Toutes'],...cats.map(c=>[c,c]),['__builtin','Échauffements']],HS.cat,v=>{HS.cat=v;renderHome();});
   const L=$('#songList');L.innerHTML='';
-  for(const s of sortSongs(filterSongs(base,HS.q,HS.cat),HS.sort)){const bt=document.createElement('button');bt.className='song';
+  for(const s of sortSongs(filterSongs(base,HS.q,HS.cat),HS.sort,S)){const bt=document.createElement('button');bt.className='song';
     try{const [a,b,c]=songStars(s);bt.innerHTML=`<h3></h3><span class="sub"></span><span class="st"><span class="stl" title="Entraînement">${STAR}<span>${a}/${b}</span></span><span class="stl" title="Défi">⚔️<span>${c}/${b}</span></span></span>`;
     bt.querySelector('h3').textContent=s.title;bt.querySelector('.sub').textContent=s.sub||(s.bpb+'/4 · '+s.notes.filter(n=>n.m!=null).length+' notes'+(s.by?' · ajouté par '+s.by:' · partition de la famille'));
     bt.onclick=()=>{CUR=s;show('songScr');};}
@@ -918,7 +918,7 @@ async function startDuo(song){
   runGame({song,partIdx:null,players,kind:D.kind,mode:D.mode,input:D.input,metro:D.metro,guide:false,bpm:Math.round(song.bpm*(D.pct||.75))});
 }
 function runGame(o){
-  const {song,partIdx,players,kind}=o,P=getParts(song);let start=0,end=Infinity;if(partIdx!=null&&partIdx<P.length){start=P[partIdx].start;end=P[partIdx].end;}
+  const {song,partIdx,players,kind}=o,P=getParts(song);if(!o.keep&&!o.loopFrom){players.forEach(x=>{x.p.played=x.p.played||{};x.p.played[song.id]=Date.now();});save();}let start=0,end=Infinity;if(partIdx!=null&&partIdx<P.length){start=P[partIdx].start;end=P[partIdx].end;}
   const pk=song.pickup||0,bpb=song.bpb;let b=0;const evs=[];
   const useL=kind==='solo'&&o.hand==='left'&&song.left&&song.left.length,src=useL?song.left:song.notes;
   const disp=[];for(const n of src){let dx=null;if(kind==='solo'&&b>=start-1e-6&&b<end-1e-6){dx={beat:b-start,d:n.d,m:n.m==null?null:n.m+players[0].shift,ev:null};disp.push(dx);}if(n.m!=null&&b>=start-1e-6&&b<end-1e-6){const bar=b<pk-1e-6?0:Math.floor((b-pk)/bpb+1e-6)+1;
@@ -1323,7 +1323,8 @@ $('#ghOff').onclick=()=>{SYNC={};saveSync();$('#ghRepo').value='';$('#ghTok').va
 const INSTICON={cello:'🎻',piano:'🎹',guitar:'🎸'};
 const addedOf=sg=>sg.added||(/^c(\d{10,})/.test(sg.id||'')?+sg.id.slice(1,14):0);
 const nNotes=sg=>(sg.notes||[]).filter(n=>n.m!=null).length+((sg.left||[]).filter(n=>n.m!=null).length);
-function sortSongs(list,mode){const a=[...list];const norm=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+const playedAt=(sg,who)=>{let t=0;for(const p of (who?[who]:DB.profiles)){const v=p.played&&p.played[sg.id];if(v>t)t=v;}return t;};
+function sortSongs(list,mode,who){const a=[...list];if(mode==='played'){a.sort((x,y)=>playedAt(y,who)-playedAt(x,who)||addedOf(y)-addedOf(x));return a;}const norm=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
   if(mode==='az')a.sort((x,y)=>norm(x.title).localeCompare(norm(y.title)));else if(mode==='long')a.sort((x,y)=>nNotes(y)-nNotes(x));else if(mode==='short')a.sort((x,y)=>nNotes(x)-nNotes(y));
   else a.sort((x,y)=>(y.custom?1:0)-(x.custom?1:0)||addedOf(y)-addedOf(x));return a;}
 function filterSongs(list,q,cat){const n=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase(),qq=n(q).trim();
@@ -1348,7 +1349,7 @@ function renderLibrary(){const all=BUILTIN.concat(DB.custom);
 $('#libQ').addEventListener('input',e=>{LIB.q=e.target.value;const pos=e.target.selectionStart;renderLibrary();const i=$('#libQ');i.focus();try{i.setSelectionRange(pos,pos);}catch(_){}});
 $('#libSort').onchange=e=>{LIB.sort=e.target.value;renderLibrary();};
 $('#libAdd').onclick=()=>openEditor(null,'library');
-const HS={q:'',cat:'',sort:'recent'};
+const HS={q:'',cat:'',sort:'played'};
 
 /* ---------- duo ---------- */
 function renderDuo(){const D=DB.duo;D.sel=D.sel.filter(id=>DB.profiles.some(p=>p.id===id));$('#duoNotice').hidden=true;
