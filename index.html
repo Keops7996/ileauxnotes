@@ -342,7 +342,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
   <button class="gear" id="toSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1L15 3.5h-4L10.7 6a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
   <div class="mhead"><h1>L’Île aux Notes</h1><p class="muted">Qui joue aujourd’hui ?</p></div>
   <div class="a2hs" id="a2hs" hidden><span class="a2i">📺</span><span class="a2t"><b>Plein écran pour AirPlay</b><br>Dans Safari : <b>Partager</b> <span class="shr">⬆︎</span> → <b>Sur l’écran d’accueil</b>, puis ouvre l’app depuis sa nouvelle icône : plus de barre d’adresse ni de favoris.</span><button class="a2x" id="a2hsX" aria-label="Fermer">✕</button></div>
-  <p class="ver">version 28.10 · 22h45</p>
+  <p class="ver">version 28.10 · 22h50</p>
   <div class="pgrid" id="profList"></div>
 </section>
 <section id="profEdit" class="screen" hidden>
@@ -496,7 +496,8 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
             <div class="field"><label class="label" for="ghRepo">Dépôt privé</label><input id="ghRepo" placeholder="Keops7996/ileauxnotes-data" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
             <div class="field"><label class="label" for="ghTok">Jeton d'accès</label><input id="ghTok" type="password" placeholder="github_pat_…" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
           </div>
-          <div class="row"><button class="btn small" id="ghOn">Connecter</button><button class="btn ghost small" id="ghPush">Envoyer</button><button class="btn ghost small" id="ghPull">Récupérer</button><button class="btn ghost small" id="ghOff">Déconnecter</button></div>
+          <div class="row"><button class="btn" id="ghSync">🔄 Synchroniser maintenant</button></div>
+          <div class="row"><button class="btn ghost small" id="ghOn">Connecter</button><button class="btn ghost small" id="ghPush">Envoyer</button><button class="btn ghost small" id="ghPull">Remplacer par GitHub</button><button class="btn ghost small" id="ghOff">Déconnecter</button></div>
           <p class="small muted" id="ghMsg">Synchronise toute la progression avec un dépôt GitHub privé, à chaque partie.</p>
         </div>
       </div>
@@ -1370,8 +1371,12 @@ $('#ghOn').onclick=async()=>{const repo=$('#ghRepo').value.trim().replace(/^http
   try{const info=await gh('GET','');if(!info.private){msg('#ghMsg','Ce dépôt est public : choisis un dépôt privé pour garder vos données pour vous.',false);SYNC.token=null;saveSync();return;}
     saveSync();const r=await ghPull();SET.pid=S.id;renderSettings();await ghPush();msg('#ghMsg',r.none?'Connecté. Première sauvegarde envoyée sur GitHub.':'Connecté. Les données des deux appareils ont été fusionnées.',true);$('#ghTok').value='••••••••';}
   catch(e){msg('#ghMsg',ghErr(e),false);}};
+$('#ghSync').onclick=async()=>{if(!SYNC.token){msg('#ghMsg','Connecte d\'abord un dépôt (champs ci-dessus, puis « Connecter »).',false);return;}const b=$('#ghSync');b.disabled=true;b.textContent='🔄 Synchronisation…';
+  const c0=DB.custom.length,p0=DB.profiles.length;try{await ghPush();const dc=DB.custom.length-c0,dp=DB.profiles.length-p0;SET.pid=(DB.profiles.find(p=>p.id===SET.pid)||S).id;renderSettings();
+    msg('#ghMsg','✓ Synchronisé à '+new Date().toLocaleTimeString('fr-BE',{hour:'2-digit',minute:'2-digit'})+' · '+DB.custom.length+' partition'+(DB.custom.length>1?'s':'')+(dc>0?' (+'+dc+' reçue'+(dc>1?'s':'')+')':'')+', '+DB.profiles.length+' musicien'+(DB.profiles.length>1?'s':'')+(dp>0?' (+'+dp+')':''),true);}
+  catch(e){msg('#ghMsg',ghErr(e),false);}finally{b.disabled=false;b.textContent='🔄 Synchroniser maintenant';}};
 $('#ghPush').onclick=async()=>{if(!SYNC.token){msg('#ghMsg','Connecte d\'abord un dépôt.',false);return;}try{await ghPush();ghStatus();}catch(e){msg('#ghMsg',ghErr(e),false);}};
-$('#ghPull').onclick=async()=>{if(!SYNC.token){msg('#ghMsg','Connecte d\'abord un dépôt.',false);return;}const b=$('#ghPull');if(!b.dataset.c){b.dataset.c='1';b.textContent='Remplacer par GitHub ?';setTimeout(()=>{b.dataset.c='';b.textContent='Récupérer';},4000);return;}b.dataset.c='';b.textContent='Récupérer';
+$('#ghPull').onclick=async()=>{if(!SYNC.token){msg('#ghMsg','Connecte d\'abord un dépôt.',false);return;}const b=$('#ghPull');if(!b.dataset.c){b.dataset.c='1';b.textContent='Sûr ? Tout remplacer';setTimeout(()=>{b.dataset.c='';b.textContent='Remplacer par GitHub';},4000);return;}b.dataset.c='';b.textContent='Remplacer par GitHub';
   try{const r=await ghPull('force');if(r.none)msg('#ghMsg','Aucune sauvegarde sur GitHub pour l\'instant.',false);else{SET.pid=S.id;renderSettings();msg('#ghMsg','Progression récupérée depuis GitHub.',true);}}catch(e){msg('#ghMsg',ghErr(e),false);}};
 $('#ghOff').onclick=()=>{SYNC={};saveSync();$('#ghRepo').value='';$('#ghTok').value='';msg('#ghMsg','Déconnecté. Le jeton a été effacé de cet appareil.',true);};
 
