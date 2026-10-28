@@ -147,6 +147,13 @@ p{margin:0}
 .songbar{display:flex;gap:8px;flex-wrap:wrap}
 .songbar input,.songbar select{background:#0b2233;border:1px solid var(--deck-2);border-radius:10px;padding:8px 10px;color:var(--foam);min-width:0}
 .songbar input{flex:1 1 160px}
+.spot{background:linear-gradient(135deg,#123326,#0f2638);border:1px solid #1d5a3c;border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.spot .sph{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.spot .sph b{font-size:1.05rem}
+.spot .sph .small{color:var(--mist)}
+.spot .spbtn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:999px;background:#1ed760;color:#0b1a12;font-weight:700;text-decoration:none}
+.spot iframe{width:100%;height:152px;border:0;border-radius:12px;background:#0b2233}
+.spot .spnote{font-size:.85rem;color:var(--mist)}
 .seg3{grid-template-columns:repeat(3,1fr)}
 .av{width:40px;height:40px;border-radius:50%;display:inline-grid;place-items:center;font-size:1.4rem;background:var(--gold);flex:none;box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
 .av.big{width:84px;height:84px;font-size:2.8rem}
@@ -319,7 +326,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
 <section id="profiles" class="menu" hidden>
   <button class="gear" id="toSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1L15 3.5h-4L10.7 6a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
   <div class="mhead"><h1>L’Île aux Notes</h1><p class="muted">Qui joue aujourd’hui ?</p></div>
-  <p class="ver">version 28.10 · 20h10</p>
+  <p class="ver">version 28.10 · 20h30</p>
   <div class="pgrid" id="profList"></div>
 </section>
 <section id="profEdit" class="screen" hidden>
@@ -390,6 +397,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
     <div class="toggle"><div><b>Mélodie guide</b><p class="small muted" id="guideTxt">le jeu joue la note avec toi</p></div><button class="switch" id="swGuide" role="switch" aria-checked="false" aria-label="Mélodie guide"></button></div>
     <button class="btn ghost" id="listenBtn">Écouter le morceau</button>
   </div>
+  <div class="spot" id="spotBox"></div>
   <div class="spread"><h3>Choisis une partie <span class="small muted" id="lvMode"></span></h3><div class="chips" id="pbChips"></div></div>
   <div class="levels" id="levelList"></div>
   <div class="row" id="customActs" hidden><button class="btn ghost small" id="editSong">Modifier les notes</button><button class="btn ghost small" id="delSong">Supprimer</button></div>
@@ -555,6 +563,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
     <div class="field"><label class="label" for="edTitle">Titre</label><input id="edTitle" maxlength="40" placeholder="Mon morceau"></div>
     <div class="field"><label class="label" for="edInst">Instrument</label><select id="edInst"><option value="cello">Violoncelle</option><option value="piano">Piano</option><option value="guitar">Guitare</option></select></div>
     <div class="field"><label class="label" for="edCat">Catégorie</label><input id="edCat" maxlength="24" placeholder="Cours, Concert, Noël…" list="edCats" autocomplete="off"><datalist id="edCats"></datalist></div>
+    <div class="field" style="grid-column:1 / -1"><label class="label" for="edSpot">Lien Spotify (facultatif)</label><div class="row" style="flex-wrap:nowrap"><input id="edSpot" placeholder="https://open.spotify.com/track/…" autocomplete="off" autocapitalize="off" spellcheck="false" style="flex:1;min-width:0"><a class="btn ghost small" id="edSpotFind" target="_blank" rel="noopener">Chercher</a></div></div>
     <div class="field"><label class="label" for="edBpb">Mesure</label><select id="edBpb"><option value="2">2/4</option><option value="3">3/4</option><option value="4">4/4</option><option value="6">6/8 (en croches : 6)</option></select></div>
     <div class="field"><label class="label" for="edPick">Anacrouse</label><select id="edPick"><option value="0">aucune</option><option value="0.5">½ temps</option><option value="1">1 temps</option><option value="1.5">1½ temps</option><option value="2">2 temps</option><option value="3">3 temps</option></select></div>
     <div class="field"><label class="label" for="edPB">Durée d'une étape</label><select id="edPB"><option value="-30">environ 30 secondes</option><option value="-60">environ 1 minute</option><option value="1">1</option><option value="2">2</option><option value="4">4</option><option value="6">6</option><option value="8">8</option><option value="12">12</option><option value="16">16</option><option value="0">tout le morceau</option></select></div>
@@ -850,7 +859,7 @@ $('#testSnd').onclick=()=>{unlockAudio();[50,54,57].forEach((m,i)=>tone(m,.5,i*.
 
 /* ---------- écran morceau ---------- */
 function setSeg(el,v){el.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));}
-function renderSong(){const s=CUR;$('#sgTitle').textContent=s.title;$('#sgSub').textContent=s.sub||'Ta partition';
+function renderSong(){const s=CUR;$('#sgTitle').textContent=s.title;try{renderSpot(s);}catch(e){}$('#sgSub').textContent=s.sub||'Ta partition';
   setSeg($('#segMode'),S.set.mode);{const mic=S.set.input==='mic';$('#inputBtn').textContent=mic?'🎤 Micro':'👆 Écran';$('#inputTxt').textContent=mic?'le micro écoute ton instrument':'tu touches les cordes à l\'écran';}setSeg($('#segView'),S.set.view||'fall');
   $('#micNotice').hidden=true;
   updTempo();
@@ -1164,6 +1173,7 @@ const ACH=[
  {id:'coins500',i:'💰',t:'Coffre bien rempli',d:'Amasse 500 pièces d\'or'},
  {id:'compo',i:'📜',t:'Copiste',d:'Ajoute une partition'},
  {id:'duo',i:'🤝',t:'Matelots en duo',d:'Termine une partie en duo'},
+ {id:'listen',i:'🎧',t:'Oreille musicale',d:'Écoute la vraie version d\'un morceau'},
 ];
 function award(id,p=S){p.ach=p.ach||{};if(p.ach[id])return null;p.ach[id]=today();save();return ACH.find(a=>a.id===id);}
 function checkAch(x){const tot=Object.values(S.time||{}).reduce((a,b)=>a+b,0);const c=[];
@@ -1349,7 +1359,7 @@ function renderLibrary(){const all=BUILTIN.concat(DB.custom);
   if(!list.length)L.innerHTML='<p class="muted">Aucune partition ne correspond. Touche « + Ajouter une partition ».</p>';
   list.forEach(sg=>{const r=document.createElement('div');r.className='lrow';r.innerHTML='<span class="li"></span><span><b></b><span class="small"></span></span><span class="acts"></span>';
     r.querySelector('.li').textContent=INSTICON[sg.inst||'cello'];const b=r.querySelector('b');b.textContent=sg.title;if(sg.cat){const ch=document.createElement('span');ch.className='catchip';ch.textContent=sg.cat;b.appendChild(ch);}
-    r.querySelector('.small').textContent=INSTS[sg.inst||'cello'].name+' · '+nNotes(sg)+' notes'+(sg.left?' · 2 mains':'')+(sg.custom?(sg.by?' · ajoutée par '+sg.by:''):' · échauffement intégré');
+    r.querySelector('.small').textContent=(sg.spotify?'🎧 ':'')+INSTS[sg.inst||'cello'].name+' · '+nNotes(sg)+' notes'+(sg.left?' · 2 mains':'')+(sg.custom?(sg.by?' · ajoutée par '+sg.by:''):' · échauffement intégré');
     const A=r.querySelector('.acts');if(sg.custom){const e=document.createElement('button');e.textContent='Modifier';e.onclick=()=>openEditor(sg,'library');A.appendChild(e);
       const d=document.createElement('button');d.textContent='Supprimer';d.onclick=()=>{if(!d.classList.contains('c')){d.classList.add('c');d.textContent='Sûr ?';setTimeout(()=>{d.classList.remove('c');d.textContent='Supprimer';},3000);return;}
         DB.custom=DB.custom.filter(x=>x!==sg);DB.profiles.forEach(p=>{if(p.best)delete p.best[sg.id];});save();renderLibrary();};A.appendChild(d);}
@@ -1358,6 +1368,24 @@ $('#libQ').addEventListener('input',e=>{LIB.q=e.target.value;const pos=e.target.
 $('#libSort').onchange=e=>{LIB.sort=e.target.value;renderLibrary();};
 $('#libAdd').onclick=()=>openEditor(null,'library');
 const HS={q:'',cat:'',sort:'played'};
+
+/* ---------- Spotify ---------- */
+function spotParse(u){u=String(u||'').trim();let m=u.match(/open\.spotify\.com\/(?:intl-[a-z]{2}\/)?(track|album|playlist|episode|artist)\/([A-Za-z0-9]{10,})/);if(!m)m=u.match(/^spotify:(track|album|playlist|episode|artist):([A-Za-z0-9]{10,})$/);return m?{type:m[1],id:m[2]}:null;}
+const spotSearch=t=>'https://open.spotify.com/search/'+encodeURIComponent(String(t||'').replace(/\s*·.*$/,'').trim());
+function updSpotFind(){const a=$('#edSpotFind');if(a)a.href=spotSearch($('#edTitle').value||'');}
+const CAN_EMBED=/github\.io$|^localhost$|^127\./.test(location.hostname);
+const SPOT_LINES=['Écoute comment sonne le vrai morceau, puis essaie de jouer comme ça !','Repère le rythme en écoutant, puis lance ton exercice.','Les grands musiciens écoutent beaucoup : à toi !'];
+function renderSpot(s){const box=$('#spotBox');if(!box)return;box.hidden=!s.custom;if(!s.custom)return;const sp=spotParse(s.spotify);box.innerHTML='';
+  const h=document.createElement('div');h.className='sph';h.innerHTML='<span style="font-size:1.6rem">🎧</span><span style="flex:1;min-width:0"><b>La vraie version</b><br><span class="small"></span></span>';
+  h.querySelector('.small').textContent=SPOT_LINES[(s.title||'').length%SPOT_LINES.length];box.appendChild(h);
+  const a=document.createElement('a');a.className='spbtn';a.target='_blank';a.rel='noopener';
+  if(sp){a.href='https://open.spotify.com/'+sp.type+'/'+sp.id;a.textContent='▶ Ouvrir dans Spotify';
+    if(CAN_EMBED){const f=document.createElement('iframe');f.src='https://open.spotify.com/embed/'+sp.type+'/'+sp.id+'?utm_source=generator&theme=0';f.loading='lazy';f.allow='autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';f.title='Lecteur Spotify';box.appendChild(f);}
+    box.appendChild(a);}
+  else{a.href=spotSearch(s.title);a.textContent='🔎 Trouver « '+s.title+' » sur Spotify';box.appendChild(a);
+    if(s.custom){const n=document.createElement('p');n.className='spnote';n.textContent='Astuce : colle le lien Spotify du morceau dans « Modifier les notes » pour avoir le lecteur ici.';box.appendChild(n);}}
+  a.addEventListener('click',()=>{const b=award('listen');if(b)setTimeout(()=>banner('Nouveau badge : '+b.t),300);});}
+$('#edTitle').addEventListener('input',updSpotFind);
 
 /* ---------- duo ---------- */
 function renderDuo(){const D=DB.duo;D.sel=D.sel.filter(id=>DB.profiles.some(p=>p.id===id));$('#duoNotice').hidden=true;
@@ -1496,7 +1524,7 @@ let ED=null;
 function openEditor(song,from){IMP=[];const prevInst=INST;if(song)INST=INSTS[song.inst||'cello'];try{$('#impPartRow').hidden=true;$('#impMsg').textContent='';}catch(e){}ED=song?{id:song.id,title:song.title,bpm:song.bpm,bpb:song.bpb,pickup:song.pickup||0,notes:song.notes.map(n=>({...n})),left:song.left?song.left.map(n=>({...n})):null,hand:'right',dur:1,sel:-1}:{id:null,title:'',bpm:90,bpb:3,pickup:0,notes:[],left:null,hand:'right',dur:1,sel:-1};try{$('#edHandRow').hidden=INST.id!=='piano';setSeg($('#edHandSeg'),'right');}catch(e){}
   ED.partBars=song?partBarsOf(song):-30;$('#edTitle').value=ED.title;$('#edBpm').value=ED.bpm;$('#edPB').value=String(ED.partBars);$('#edBpb').value=String(ED.bpb);$('#edPick').value=String(ED.pickup);$('#edErr').hidden=true;
   $('#edH').textContent=(song?'Modifier':'Ajouter')+' ta partition · '+INST.name;$('#gridLbl').textContent=INST.id==='piano'?'2. Note (clavier : touches noires en haut de chaque octave)':INST.id==='guitar'?'2. Note (colonnes = cordes, lignes = cases)':'2. Note (colonnes = cordes, lignes = doigts)';
-  ED.from=from||'';ED.prevInst=prevInst;ED.inst=INST.id;ED.cat=song&&song.cat||'';$('#edInst').value=INST.id;$('#edCat').value=ED.cat;$('#edCats').innerHTML=allCats(BUILTIN.concat(DB.custom)).map(c=>'<option value="'+c.replace(/"/g,'&quot;')+'"></option>').join('');
+  ED.from=from||'';ED.prevInst=prevInst;ED.inst=INST.id;ED.cat=song&&song.cat||'';$('#edSpot').value=song&&song.spotify||'';updSpotFind();$('#edInst').value=INST.id;$('#edCat').value=ED.cat;$('#edCats').innerHTML=allCats(BUILTIN.concat(DB.custom)).map(c=>'<option value="'+c.replace(/"/g,'&quot;')+'"></option>').join('');
   buildGrid();document.querySelectorAll('#app>section').forEach(s=>s.hidden=s.id!=='editor');window.scrollTo(0,0);renderEd();}
 function edSetInst(v){INST=INSTS[v];ED.inst=v;$('#edHandRow').hidden=v!=='piano';$('#edH').textContent=$('#edH').textContent.replace(/ · .*$/,' · '+INST.name);$('#gridLbl').textContent=v==='piano'?'2. Note (clavier : touches noires en haut de chaque octave)':v==='guitar'?'2. Note (colonnes = cordes, lignes = cases)':'2. Note (colonnes = cordes, lignes = doigts)';buildGrid();renderEd();}
 function edLeave(){INST=INSTS[S.inst]||INSTS.cello;}
@@ -1529,7 +1557,7 @@ $('#edBack').onclick=()=>{stopListen();const from=ED&&ED.from;edLeave();if(from=
 $('#edSave').onclick=()=>{edMeta();const err=$('#edErr');if(!ED.title){err.hidden=false;err.textContent='Donne un titre à ton morceau.';$('#edTitle').focus();return;}
   if(ED.notes.filter(n=>n.m!=null).length<2){err.hidden=false;err.textContent='Ajoute au moins deux notes.';return;}err.hidden=true;
   if(ED.hand==='left')edSwap('right');
-  const song=cleanSong({left:ED.left&&ED.left.some(n=>n.m!=null)?ED.left.map(n=>({m:n.m,d:n.d})):undefined,id:ED.id||('c'+Date.now()),title:ED.title,bpm:ED.bpm,bpb:ED.bpb,pickup:ED.pickup,partBars:ED.partBars,notes:ED.notes.map(n=>({m:n.m,d:n.d})),custom:true,inst:ED.inst||INST.id,cat:($('#edCat').value||'').trim().slice(0,24)||undefined,added:(ED.id&&songById(ED.id)&&songById(ED.id).added)||Date.now()});
+  const song=cleanSong({left:ED.left&&ED.left.some(n=>n.m!=null)?ED.left.map(n=>({m:n.m,d:n.d})):undefined,id:ED.id||('c'+Date.now()),title:ED.title,bpm:ED.bpm,bpb:ED.bpb,pickup:ED.pickup,partBars:ED.partBars,notes:ED.notes.map(n=>({m:n.m,d:n.d})),custom:true,inst:ED.inst||INST.id,cat:($('#edCat').value||'').trim().slice(0,24)||undefined,spotify:spotParse($('#edSpot').value)?$('#edSpot').value.trim():undefined,added:(ED.id&&songById(ED.id)&&songById(ED.id).added)||Date.now()});
   song.by=(songById(song.id)&&songById(song.id).by)||S.name;award('compo');const i=DB.custom.findIndex(x=>x.id===song.id);if(i>=0){DB.custom[i]=song;}else DB.custom.push(song);save();stopListen();const from=ED.from;edLeave();
   if(from==='library'||!DB.profiles.length){show(DB.profiles.length?'library':'home');return;}
   if(song.inst!==INST.id){if(S.insts&&S.insts.includes(song.inst)){S.inst=song.inst;INST=INSTS[song.inst];save();}else{show('home');return;}}CUR=song;show('songScr');};
