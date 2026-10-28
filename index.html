@@ -342,7 +342,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
   <button class="gear" id="toSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1L15 3.5h-4L10.7 6a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
   <div class="mhead"><h1>L’Île aux Notes</h1><p class="muted">Qui joue aujourd’hui ?</p></div>
   <div class="a2hs" id="a2hs" hidden><span class="a2i">📺</span><span class="a2t"><b>Plein écran pour AirPlay</b><br>Dans Safari : <b>Partager</b> <span class="shr">⬆︎</span> → <b>Sur l’écran d’accueil</b>, puis ouvre l’app depuis sa nouvelle icône : plus de barre d’adresse ni de favoris.</span><button class="a2x" id="a2hsX" aria-label="Fermer">✕</button></div>
-  <p class="ver">version 28.10 · 22h50</p>
+  <p class="ver">version 28.10 · 22h55</p>
   <div class="pgrid" id="profList"></div>
 </section>
 <section id="profEdit" class="screen" hidden>
@@ -1615,8 +1615,7 @@ function renderProfiles(){a2hsCheck();const L=$('#profList');L.innerHTML='';cons
     t.querySelector('.av').textContent=p.avatar;t.querySelector('.av').style.background=p.color;t.querySelector('.tname').textContent=p.name||'Pirate';t.querySelector('.tinst').textContent=p.insts.map(i=>INSTS[i].name).join(' · ');
     t.querySelector('.tpick').onclick=()=>{applyProfile(p);show('home');};t.querySelector('.tedit').onclick=()=>openProfEdit(p);L.appendChild(t);});
   const n=document.createElement('button');n.className='tile tnew';n.innerHTML='<span class="plus">+</span><b>Ajouter</b>';n.onclick=()=>openProfEdit(null);L.appendChild(n);
-  {const lb=document.createElement('button');lb.className='tile tnew tduo';lb.innerHTML='<span class="plus">📚</span><b>Partitions</b><span class="small">'+DB.custom.length+' ajoutée'+(DB.custom.length>1?'s':'')+'</span>';lb.onclick=()=>show('library');L.appendChild(lb);}
-  if(DB.profiles.length>=2){const d=document.createElement('button');d.className='tile tnew tduo';d.innerHTML='<span class="plus">🤝</span><b>Duo</b><span class="small">jouer à deux</span>';d.onclick=()=>show('duo');L.appendChild(d);}}
+  {const lb=document.createElement('button');lb.className='tile tnew tduo';lb.innerHTML='<span class="plus">📚</span><b>Partitions</b><span class="small">'+DB.custom.length+' ajoutée'+(DB.custom.length>1?'s':'')+'</span>';lb.onclick=()=>show('library');L.appendChild(lb);}}
 let PE=null;
 function openProfEdit(p,first){PE={p,first,name:p?p.name:'',avatar:p?p.avatar:AVATARS[DB.profiles.length%AVATARS.length],color:p?p.color:PCOLORS[DB.profiles.length%PCOLORS.length],insts:p?[...p.insts]:['cello']};
   $('#peTitle').textContent=p?'Personnaliser':(first?'Bienvenue à bord !':'Nouveau musicien');$('#peName').value=PE.name;$('#peDel').hidden=!p||DB.profiles.length<2;$('#peBack').hidden=!!first;$('#peErr').hidden=true;
