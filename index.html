@@ -156,10 +156,14 @@ p{margin:0}
 .spot .spbtn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:999px;background:#1ed760;color:#0b1a12;font-weight:700;text-decoration:none}
 .spot iframe{width:100%;height:152px;border:0;border-radius:12px;background:#0b2233}
 .spot .spnote{font-size:.85rem;color:var(--mist)}
-.syncov{position:fixed;z-index:20}
-.syncov .box{max-width:460px}
+.overlay.syncov{position:fixed;z-index:20;align-items:center;overflow-y:auto;padding-block:max(8px,env(safe-area-inset-top,0px)) max(8px,env(safe-area-inset-bottom,0px))}
+.overlay.syncov .box.sbox{max-width:820px;width:100%;display:grid;grid-template-columns:1.1fr 1fr;gap:12px 18px;max-height:calc(100dvh - 16px);overflow-y:auto;padding:14px 16px}
+.sbox .shead{grid-column:1 / -1}
+.sbox .scol{display:flex;flex-direction:column;gap:10px;min-width:0}
+@media (max-width:560px){.overlay.syncov .box.sbox{grid-template-columns:1fr}}
 .slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .slots button{padding:12px 6px;border-radius:12px;background:var(--parch);color:var(--ink);font-weight:700;font-size:1.05rem;font-variant-numeric:tabular-nums}
+.edtop{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--sea);padding-block:8px;margin-top:-8px}
 .seg3{grid-template-columns:repeat(3,1fr)}
 .av{width:40px;height:40px;border-radius:50%;display:inline-grid;place-items:center;font-size:1.4rem;background:var(--gold);flex:none;box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
 .av.big{width:84px;height:84px;font-size:2.8rem}
@@ -338,7 +342,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
   <button class="gear" id="toSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1L15 3.5h-4L10.7 6a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
   <div class="mhead"><h1>L’Île aux Notes</h1><p class="muted">Qui joue aujourd’hui ?</p></div>
   <div class="a2hs" id="a2hs" hidden><span class="a2i">📺</span><span class="a2t"><b>Plein écran pour AirPlay</b><br>Dans Safari : <b>Partager</b> <span class="shr">⬆︎</span> → <b>Sur l’écran d’accueil</b>, puis ouvre l’app depuis sa nouvelle icône : plus de barre d’adresse ni de favoris.</span><button class="a2x" id="a2hsX" aria-label="Fermer">✕</button></div>
-  <p class="ver">version 28.10 · 22h</p>
+  <p class="ver">version 28.10 · 22h15</p>
   <div class="pgrid" id="profList"></div>
 </section>
 <section id="profEdit" class="screen" hidden>
@@ -410,15 +414,17 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
     <div class="toggle"><div><b>Mélodie guide</b><p class="small muted" id="guideTxt">le jeu joue la note avec toi</p></div><button class="switch" id="swGuide" role="switch" aria-checked="false" aria-label="Mélodie guide"></button></div>
     <button class="btn ghost" id="listenBtn">Écouter le morceau</button>
   </div>
-  <div class="overlay syncov" id="syncOv" hidden><div class="box">
-    <h3>Départ synchronisé</h3>
-    <p class="small">Sur chaque appareil, ouvre la partition de ton instrument, avec le <b>même tempo</b> (<b id="syncBpm"></b> BPM ici) et la même partie. Puis touchez tous les deux la <b>même heure de départ</b>.</p>
-    <div class="slots" id="syncSlots"></div>
-    <div class="spread small"><span>Horloge de cet appareil : <b id="syncOff">0</b> ms</span><span class="row"><button class="btn ghost small" id="offM">− 20 ms</button><button class="btn ghost small" id="offP">+ 20 ms</button><button class="btn ghost small" id="syncTest">Bip test</button></span></div>
-    <div class="row"><button class="btn small" id="asGive">📣 Donner le signal</button><button class="btn small" id="asListen">👂 Se caler sur l'autre</button></div>
-    <p class="small" id="syncAuto">Calage automatique : touche « Donner le signal » sur un appareil, puis « Se caler sur l'autre » sur le second, posés près l'un de l'autre.</p>
-    <p class="small muted">Bip test : les deux appareils bipent à chaque seconde pour vérifier à l'oreille ; − / + pour corriger à la main.</p>
-    <button class="btn ghost" id="syncCancel">Annuler</button>
+  <div class="overlay syncov" id="syncOv" hidden><div class="box sbox">
+    <div class="spread shead"><h3>Départ synchronisé · <span id="syncBpm"></span> BPM</h3><button class="btn ghost small" id="syncCancel">Annuler</button></div>
+    <div class="scol">
+      <p class="small">Même partition (version de ton instrument), même tempo et même partie sur les deux appareils, puis touchez tous les deux la <b>même heure</b> :</p>
+      <div class="slots" id="syncSlots"></div>
+    </div>
+    <div class="scol">
+      <div class="row"><button class="btn small" id="asGive">📣 Donner le signal</button><button class="btn small" id="asListen">👂 Se caler sur l'autre</button></div>
+      <p class="small" id="syncAuto">Calage auto : « Donner le signal » sur un appareil, puis « Se caler » sur l'autre, posés côte à côte.</p>
+      <div class="row small"><span>Horloge : <b id="syncOff">0</b> ms</span><button class="btn ghost small" id="offM">−20</button><button class="btn ghost small" id="offP">+20</button><button class="btn ghost small" id="syncTest">Bip test</button></div>
+    </div>
   </div></div>
   <div class="spread"><h3>Choisis une partie <span class="small muted" id="lvMode"></span></h3><div class="chips" id="pbChips"></div></div>
   <div class="levels" id="levelList"></div>
@@ -579,7 +585,8 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
 
 <!-- ÉDITEUR -->
 <section id="editor" class="screen" hidden>
-  <button class="back" id="edBack">← Retour</button>
+  <div class="edtop"><button class="back" id="edBack">← Retour</button><button class="btn" id="edSave">✓ Enregistrer et jouer</button></div>
+  <p class="err" id="edErr" hidden></p>
   <h2 id="edH">Ajouter ta partition</h2>
   <p class="small muted">Touche les notes dans l'ordre de la partition, en choisissant d'abord leur durée. Les reprises (barres 1 et 2) s'écrivent en entier, dans l'ordre où on les joue.</p>
   <div class="fields">
@@ -605,8 +612,6 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
   <div><div class="spread"><span class="label">Ta partition</span><span class="small muted" id="edInfo"></span></div>
     <div class="seq" id="seq" style="margin-top:6px"></div>
     <p class="small muted" style="margin-top:6px">Touche une note pour la sélectionner, puis une autre note ou durée pour la corriger. Bordure rouge = la note dépasse la barre de mesure.</p></div>
-  <p class="err" id="edErr" hidden></p>
-  <button class="btn big" id="edSave">Enregistrer et jouer</button>
   <details class="panel"><summary><b>Code du morceau</b> <span class="small muted">(sauvegarde, partage)</span></summary>
     <p class="small muted">Copie ce code pour garder une copie ou l'envoyer sur un autre appareil. Colle un code puis « Charger » pour le récupérer.</p>
     <textarea id="edCode" spellcheck="false" aria-label="Code du morceau"></textarea>
