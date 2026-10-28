@@ -342,7 +342,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
   <button class="gear" id="toSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1L15 3.5h-4L10.7 6a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
   <div class="mhead"><h1>L’Île aux Notes</h1><p class="muted">Qui joue aujourd’hui ?</p></div>
   <div class="a2hs" id="a2hs" hidden><span class="a2i">📺</span><span class="a2t"><b>Plein écran pour AirPlay</b><br>Dans Safari : <b>Partager</b> <span class="shr">⬆︎</span> → <b>Sur l’écran d’accueil</b>, puis ouvre l’app depuis sa nouvelle icône : plus de barre d’adresse ni de favoris.</span><button class="a2x" id="a2hsX" aria-label="Fermer">✕</button></div>
-  <p class="ver">version 28.10 · 22h15</p>
+  <p class="ver">version 28.10 · 22h25</p>
   <div class="pgrid" id="profList"></div>
 </section>
 <section id="profEdit" class="screen" hidden>
@@ -630,7 +630,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
 </div>
 <script>
 (function(){var shown=0;window.__crash=function(m){show(m);};function show(m){if(shown++>3)return;var c=document.getElementById('crash');if(!c)return;document.getElementById('crashTxt').textContent=String(m).slice(0,400);c.hidden=false;}
-window.addEventListener('error',function(e){show((e.message||'erreur')+(e.lineno?' (ligne '+e.lineno+')':''));});
+window.addEventListener('error',function(e){var m=String(e.message||'');if(/__gCrWeb|__firefox__|__onTouch|ResizeObserver loop|^Script error/i.test(m))return;var f=String(e.filename||'');if((!f||/^(chrome|safari|moz|webkit)-?extension:|^user-script:/i.test(f))&&(e.lineno||0)<=1)return;show(m+(e.lineno?' (ligne '+e.lineno+')':''));});
 window.addEventListener('unhandledrejection',function(e){try{e.preventDefault();}catch(_){}});
 document.addEventListener('click',function(e){if(e.target.id==='crashReload')location.reload();if(e.target.id==='crashClose')document.getElementById('crash').hidden=true;});})();
 </script>
