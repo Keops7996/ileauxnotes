@@ -8,6 +8,7 @@ Jeu d'entraînement musical pour toute la famille : violoncelle, piano et guitar
 - Profils par musicien (avatar, couleur, un ou plusieurs instruments), points (total et de la semaine), étoiles, rangs et badges.
 - Piano : main droite ou main gauche au choix, avant l'exercice ou pendant (bouton ✋), avec import des deux portées (MusicXML) ou séparation automatique des mains (MIDI).
 - Duo : deux musiciens à l'écran, chacun son tour ou ensemble.
+- Bibliothèque « Partitions » depuis le menu (sans choisir de musicien) : ajout, modification, suppression, catégories, recherche, filtre par instrument et tri.
 - Éditeur pour entrer ses propres partitions, partagées par toute la famille, avec import de fichiers MusicXML (.musicxml, .mxl) et MIDI (.mid).
 - Réglages (roue dentée du menu, protégés par un petit calcul) : historique des performances, ajout ou retrait d'une performance, remise à zéro des scores avec confirmation, sauvegarde dans un fichier et synchronisation avec un dépôt GitHub privé.
 
