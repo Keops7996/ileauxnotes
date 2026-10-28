@@ -342,7 +342,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
   <button class="gear" id="toSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1L15 3.5h-4L10.7 6a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
   <div class="mhead"><h1>L’Île aux Notes</h1><p class="muted">Qui joue aujourd’hui ?</p></div>
   <div class="a2hs" id="a2hs" hidden><span class="a2i">📺</span><span class="a2t"><b>Plein écran pour AirPlay</b><br>Dans Safari : <b>Partager</b> <span class="shr">⬆︎</span> → <b>Sur l’écran d’accueil</b>, puis ouvre l’app depuis sa nouvelle icône : plus de barre d’adresse ni de favoris.</span><button class="a2x" id="a2hsX" aria-label="Fermer">✕</button></div>
-  <p class="ver">version 28.10 · 22h25</p>
+  <p class="ver">version 28.10 · 22h45</p>
   <div class="pgrid" id="profList"></div>
 </section>
 <section id="profEdit" class="screen" hidden>
@@ -875,7 +875,7 @@ function renderHome(){
     bt.querySelector('h3').textContent=s.title;bt.querySelector('.sub').textContent=s.sub||(s.bpb+'/4 · '+s.notes.filter(n=>n.m!=null).length+' notes'+(s.by?' · ajouté par '+s.by:' · partition de la famille'));
     bt.onclick=()=>{CUR=s;show('songScr');};}
     catch(e){bt.innerHTML='<h3></h3><span class="sub">Partition illisible · touche pour la supprimer</span>';bt.querySelector('h3').textContent=String(s.title||'Sans titre');
-      bt.onclick=()=>{if(!bt.dataset.c){bt.dataset.c='1';bt.querySelector('.sub').textContent='Touche encore pour supprimer cette partition';return;}DB.custom=DB.custom.filter(x=>x!==s);save();renderHome();};}
+      bt.onclick=()=>{if(!bt.dataset.c){bt.dataset.c='1';bt.querySelector('.sub').textContent='Touche encore pour supprimer cette partition';return;}DB.deleted=DB.deleted||{};DB.deleted[s.id]=Date.now();DB.custom=DB.custom.filter(x=>x!==s);save();renderHome();};}
     L.appendChild(bt);}
   const add=document.createElement('button');add.className='song add';add.innerHTML='<h3>+ Ajouter ta partition</h3><span class="sub">Entre les notes du morceau de ton cours</span>';add.onclick=()=>openEditor(null);L.appendChild(add);
 }
@@ -898,7 +898,7 @@ function renderSong(){const s=CUR;$('#sgTitle').textContent=s.title;try{renderSp
   $('#guideTxt').textContent=gDis?'coupée avec le micro (il l\'entendrait)':'le jeu joue la note avec toi';
   $('#listenBtn').textContent='Écouter le morceau';
   {const cur=partBarsOf(s),opts=[-30,-60,2,4,8,0];if(!opts.includes(cur))opts.splice(opts.length-1,0,cur);const C=$('#pbChips');C.innerHTML='<span class="small muted">étapes de</span>';
-    opts.forEach(v=>{const c=document.createElement('button');c.className='chip'+(v===cur?' on':'');c.textContent=v===0?'Tout':v<0?(v===-60?'1 min':(-v)+' s'):v+(v===1?' mesure':' mesures');c.onclick=()=>{if(s.custom)s.partBars=v;else{DB.partSize=DB.partSize||{};DB.partSize[s.id]=v;}save();renderSong();};C.appendChild(c);});}
+    opts.forEach(v=>{const c=document.createElement('button');c.className='chip'+(v===cur?' on':'');c.textContent=v===0?'Tout':v<0?(v===-60?'1 min':(-v)+' s'):v+(v===1?' mesure':' mesures');c.onclick=()=>{if(s.custom){s.partBars=v;s.upd=Date.now();}else{DB.partSize=DB.partSize||{};DB.partSize[s.id]=v;}save();renderSong();};C.appendChild(c);});}
   $('#handBox').hidden=!(s.left&&s.left.length);setSeg($('#segHand'),S.set.hand==='left'?'left':'right');
   $('#lvMode').textContent='· étoiles '+(viewMode()==='rhythm'?'Défi':'Entraînement')+(s.left&&s.left.length?(handOf(s.id)==='left'?' · main gauche':' · main droite'):'');
   const P=getParts(s),L=$('#levelList');L.innerHTML='';
@@ -931,7 +931,7 @@ $('#listenBtn').onclick=()=>{if(LISTEN){stopListen();return;}$('#listenBtn').tex
 $('#useTap').onclick=()=>{S.set.input='tap';save();renderSong();};
 $('#editSong').onclick=()=>openEditor(CUR);
 $('#delSong').onclick=()=>{const b=$('#delSong');if(!b.dataset.c){b.dataset.c='1';b.textContent='Sûr ? Toucher encore pour supprimer';setTimeout(()=>{b.dataset.c='';b.textContent='Supprimer';},3500);return;}
-  DB.custom=DB.custom.filter(x=>x.id!==CUR.id);DB.profiles.forEach(p=>delete p.best[CUR.id]);save();show('home');};
+  DB.deleted=DB.deleted||{};DB.deleted[CUR.id]=Date.now();DB.custom=DB.custom.filter(x=>x.id!==CUR.id);DB.profiles.forEach(p=>delete p.best[CUR.id]);save();show('home');};
 
 /* ---------- jeu ---------- */
 const CV=$('#cv'),CTX=CV.getContext('2d');let DPR=1,G=null,WL=null;
@@ -1095,7 +1095,7 @@ $('#pTpRange').oninput=e=>{const v=+e.target.value;G.bpm=v;G.spb=60/v;$('#pTpVal
 function logGameTime(){const sec=(performance.now()-G.t0)/1000;G.players.forEach(pl=>logTime(sec,pl.p));}
 $('#restartBtn').onclick=()=>{G.running=false;logGameTime();if(G.duo)startDuo(G.song);else startGame(G.partIdx);};
 $('#quitBtn').onclick=()=>{G.running=false;logGameTime();unwake();show(G.duo?'duo':'songScr');};
-document.addEventListener('visibilitychange',()=>{if(document.hidden){if(G&&G.running&&!G.paused)togglePause(true);stopMic();}else if(!$('#tuner').hidden&&TUN.wasOn){TUN.wasOn=false;startMic().then(ok=>{if(ok)runTuner();});}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&SYNC.repo&&SYNC.token&&!(G&&G.running))ghPull().then(r=>{if(r&&r.loaded)refreshView();}).catch(()=>{});if(document.hidden){if(G&&G.running&&!G.paused)togglePause(true);stopMic();}else if(!$('#tuner').hidden&&TUN.wasOn){TUN.wasOn=false;startMic().then(ok=>{if(ok)runTuner();});}});
 window.addEventListener('pagehide',()=>stopMic());
 
 /* ---------- vue partition ---------- */
@@ -1355,11 +1355,12 @@ async function gh(method,path,body){const r=await fetch('https://api.github.com/
 const b64e=t=>{const u=new TextEncoder().encode(t);let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return btoa(s);};
 const b64d=b=>new TextDecoder().decode(Uint8Array.from(atob(b.replace(/\s/g,'')),c=>c.charCodeAt(0)));
 function ghErr(e){return e&&e.status===401?'Jeton refusé : vérifie qu\'il est valide et non expiré.':e&&(e.status===403||e.status===404)?'Accès refusé au dépôt : vérifie son nom et les droits « Contents : lecture et écriture » du jeton.':'Pas de connexion à GitHub pour le moment.';}
-async function ghPull(apply){const f=await gh('GET','/contents/'+GHFILE);if(!f)return{none:true};SYNC.sha=f.sha;saveSync();const o=JSON.parse(b64d(f.content));
-  if(apply==='force'||((o.savedAt||0)>(DB.savedAt||0))){importObj(o);DB.savedAt=o.savedAt;try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}return{loaded:true};}return{older:true};}
+async function ghPull(apply){const f=await gh('GET','/contents/'+GHFILE);if(!f)return{none:true};SYNC.sha=f.sha;saveSync();const o=JSON.parse(b64d(f.content)),rdb=o&&o.db?o.db:o;if(!rdb||!Array.isArray(rdb.profiles))return{none:true};
+  if(apply==='force'){const off=DB.clockOff;importObj(o);DB.clockOff=off;DB.savedAt=o.savedAt;try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}return{loaded:true};}
+  const before=JSON.stringify([DB.custom,DB.profiles]);adoptDB(mergeDB(DB,rdb));const changed=before!==JSON.stringify([DB.custom,DB.profiles]);return{loaded:changed,merged:true};}
 let PUSHING=false,PUSH_T=null;
-async function ghPush(){if(!SYNC.repo||!SYNC.token||PUSHING)return;PUSHING=true;try{const body={message:'Sauvegarde du '+new Date().toLocaleString('fr-BE'),content:b64e(exportJSON())};if(SYNC.sha)body.sha=SYNC.sha;
-    let r;try{r=await gh('PUT','/contents/'+GHFILE,body);}catch(e){if(e.status===409||e.status===422){const f=await gh('GET','/contents/'+GHFILE);if(f)body.sha=f.sha;else delete body.sha;r=await gh('PUT','/contents/'+GHFILE,body);}else throw e;}
+async function ghPush(){if(!SYNC.repo||!SYNC.token||PUSHING)return;PUSHING=true;try{try{const r0=await ghPull();if(r0&&r0.loaded)refreshView();}catch(e){if(e&&e.status===401)throw e;}const body={message:'Sauvegarde du '+new Date().toLocaleString('fr-BE'),content:b64e(exportJSON())};if(SYNC.sha)body.sha=SYNC.sha;
+    if(SYNC.sha)body.sha=SYNC.sha;let r;try{r=await gh('PUT','/contents/'+GHFILE,body);}catch(e){if(e.status===409||e.status===422){await ghPull();refreshView();body.content=b64e(exportJSON());body.sha=SYNC.sha;r=await gh('PUT','/contents/'+GHFILE,body);}else throw e;}
     SYNC.sha=r.content.sha;SYNC.last=Date.now();saveSync();return true;}finally{PUSHING=false;}}
 function schedulePush(){if(!SYNC.repo||!SYNC.token)return;clearTimeout(PUSH_T);PUSH_T=setTimeout(()=>{ghPush().catch(()=>{});},4000);}
 $('#ghOn').onclick=async()=>{const repo=$('#ghRepo').value.trim().replace(/^https?:\/\/github\.com\//,'').replace(/\.git$/,'').replace(/\/$/,'');const tok=$('#ghTok').value.trim();
@@ -1367,7 +1368,7 @@ $('#ghOn').onclick=async()=>{const repo=$('#ghRepo').value.trim().replace(/^http
   if(!tok||tok.startsWith('•')){if(!SYNC.token){msg('#ghMsg','Colle le jeton d\'accès GitHub.',false);return;}}else SYNC.token=tok;
   SYNC.repo=repo;msg('#ghMsg','Connexion…');
   try{const info=await gh('GET','');if(!info.private){msg('#ghMsg','Ce dépôt est public : choisis un dépôt privé pour garder vos données pour vous.',false);SYNC.token=null;saveSync();return;}
-    saveSync();const r=await ghPull('force');if(r.loaded){SET.pid=S.id;renderSettings();msg('#ghMsg','Connecté. Progression récupérée depuis GitHub.',true);}else{await ghPush();ghStatus();}$('#ghTok').value='••••••••';}
+    saveSync();const r=await ghPull();SET.pid=S.id;renderSettings();await ghPush();msg('#ghMsg',r.none?'Connecté. Première sauvegarde envoyée sur GitHub.':'Connecté. Les données des deux appareils ont été fusionnées.',true);$('#ghTok').value='••••••••';}
   catch(e){msg('#ghMsg',ghErr(e),false);}};
 $('#ghPush').onclick=async()=>{if(!SYNC.token){msg('#ghMsg','Connecte d\'abord un dépôt.',false);return;}try{await ghPush();ghStatus();}catch(e){msg('#ghMsg',ghErr(e),false);}};
 $('#ghPull').onclick=async()=>{if(!SYNC.token){msg('#ghMsg','Connecte d\'abord un dépôt.',false);return;}const b=$('#ghPull');if(!b.dataset.c){b.dataset.c='1';b.textContent='Remplacer par GitHub ?';setTimeout(()=>{b.dataset.c='';b.textContent='Récupérer';},4000);return;}b.dataset.c='';b.textContent='Récupérer';
@@ -1399,7 +1400,7 @@ function renderLibrary(){const all=BUILTIN.concat(DB.custom);
     r.querySelector('.small').textContent=(sg.spotify?'🎧 ':'')+INSTS[sg.inst||'cello'].name+' · '+nNotes(sg)+' notes'+(sg.left?' · 2 mains':'')+(sg.custom?(sg.by?' · ajoutée par '+sg.by:''):' · échauffement intégré');
     const A=r.querySelector('.acts');if(sg.custom){const e=document.createElement('button');e.textContent='Modifier';e.onclick=()=>openEditor(sg,'library');A.appendChild(e);
       const d=document.createElement('button');d.textContent='Supprimer';d.onclick=()=>{if(!d.classList.contains('c')){d.classList.add('c');d.textContent='Sûr ?';setTimeout(()=>{d.classList.remove('c');d.textContent='Supprimer';},3000);return;}
-        DB.custom=DB.custom.filter(x=>x!==sg);DB.profiles.forEach(p=>{if(p.best)delete p.best[sg.id];});save();renderLibrary();};A.appendChild(d);}
+        DB.deleted=DB.deleted||{};DB.deleted[sg.id]=Date.now();DB.custom=DB.custom.filter(x=>x!==sg);DB.profiles.forEach(p=>{if(p.best)delete p.best[sg.id];});save();renderLibrary();};A.appendChild(d);}
     L.appendChild(r);});}
 $('#libQ').addEventListener('input',e=>{LIB.q=e.target.value;const pos=e.target.selectionStart;renderLibrary();const i=$('#libQ');i.focus();try{i.setSelectionRange(pos,pos);}catch(_){}});
 $('#libSort').onchange=e=>{LIB.sort=e.target.value;renderLibrary();};
@@ -1465,6 +1466,33 @@ async function listenSync(){if(AS.busy)return;AS.busy=true;ac();syncMsg('👂 Pr
   DB.clockOff=Math.round(off-d);save();$('#syncOff').textContent=DB.clockOff;renderSlots();
   syncMsg('✓ Calé sur l\'autre appareil : correction de '+(d>0?'−':'+')+Math.abs(Math.round(d))+' ms'+(spread>60?' (signal irrégulier, refais-le si besoin)':''),true);}
 
+
+/* ---------- fusion des données entre appareils ---------- */
+function mergeProfile(a,b){const A=a.upd||0,B=b.upd||0,base=JSON.parse(JSON.stringify(B>A?b:a)),o=B>A?a:b;
+  const hb=new Map();(base.hist||[]).forEach(h=>hb.set(h.id,h));const extra=(o.hist||[]).filter(h=>!hb.has(h.id));
+  base.hist=[...(base.hist||[]),...extra].sort((x,y)=>x.d<y.d?1:-1).slice(0,300);
+  const bigger=(a.coins||0)>=(b.coins||0)?a:b,small=bigger===a?b:a,bigIds=new Set((bigger.hist||[]).map(h=>h.id));
+  base.coins=(bigger.coins||0)+(small.hist||[]).filter(h=>!bigIds.has(h.id)).reduce((s,h)=>s+(h.pts||0),0);
+  const wk=weekKey(),wa=a.week&&a.week.k===wk?a.week.pts:0,wb=b.week&&b.week.k===wk?b.week.pts:0,wBig=wa>=wb?a:b,wSmall=wBig===a?b:a,wIds=new Set((wBig.hist||[]).map(h=>h.id));
+  base.week={k:wk,pts:Math.max(wa,wb)+(wSmall.hist||[]).filter(h=>!wIds.has(h.id)&&weekKey(new Date(h.d))===wk).reduce((s,h)=>s+(h.pts||0),0),prev:Math.max((a.week&&a.week.prev)||0,(b.week&&b.week.prev)||0)};
+  base.best={};for(const src of [a.best||{},b.best||{}])for(const sid in src){base.best[sid]=base.best[sid]||{};for(const k in src[sid]){const x=src[sid][k],y=base.best[sid][k]||{stars:0,score:0};base.best[sid][k]={stars:Math.max(x.stars||0,y.stars||0),score:Math.max(x.score||0,y.score||0)};}}
+  base.time={};for(const src of [a.time||{},b.time||{}])for(const d in src)base.time[d]=Math.max(base.time[d]||0,src[d]||0);
+  base.ach=Object.assign({},b.ach||{},a.ach||{});base.played={};for(const src of [a.played||{},b.played||{}])for(const k in src)base.played[k]=Math.max(base.played[k]||0,src[k]);
+  const sa=a.streak||{},sb=b.streak||{};base.streak=(sa.last||'')>(sb.last||'')?sa:(sb.last||'')>(sa.last||'')?sb:((sa.n||0)>=(sb.n||0)?sa:sb);
+  const da=a.daily||{},db=b.daily||{};base.daily=da.date===db.date?{date:da.date,plays:Math.max(da.plays||0,db.plays||0),chest:!!(da.chest||db.chest)}:((da.date||'')>(db.date||'')?da:db);
+  base.games=Math.max(a.games||0,b.games||0);return base;}
+function mergeDB(L,R){const out=JSON.parse(JSON.stringify(L));const del=Object.assign({},R.deleted||{},L.deleted||{});for(const k in (R.deleted||{}))del[k]=Math.max(del[k]||0,R.deleted[k]);out.deleted=del;
+  const songs=new Map();for(const sg of [...(R.custom||[]),...(L.custom||[])]){const prev=songs.get(sg.id);if(!prev||(sg.upd||addedOf(sg))>=(prev.upd||addedOf(prev)))songs.set(sg.id,sg);}
+  out.custom=[...songs.values()].filter(sg=>!(del[sg.id]&&del[sg.id]>=(sg.upd||addedOf(sg)||0))).map(cleanSong).filter(Boolean);
+  const dp=Object.assign({},R.delProf||{},L.delProf||{});out.delProf=dp;const pm=new Map();(L.profiles||[]).forEach(p=>pm.set(p.id,p));
+  (R.profiles||[]).forEach(p=>{const l=pm.get(p.id);pm.set(p.id,l?mergeProfile(l,p):p);});
+  out.profiles=[...pm.values()].filter(p=>!dp[p.id]);out.clockOff=L.clockOff;out.active=L.active;out.duo=L.duo||R.duo;out.partSize=Object.assign({},R.partSize||{},L.partSize||{});
+  out.savedAt=Math.max(L.savedAt||0,R.savedAt||0);return out;}
+function adoptDB(nd){const keepId=S&&S.id;DB=nd;DB.duo=Object.assign({sel:[],kind:'relay',mode:'wait',input:'tap',metro:true,pct:.75},DB.duo||{});
+  DB.profiles.forEach(p=>{p.insts=(p.insts&&p.insts.length)?p.insts:[p.inst||'cello'];if(!p.insts.includes(p.inst))p.inst=p.insts[0];p.set=Object.assign({...DEF_SET,pct:{}},p.set||{});});
+  S=DB.profiles.find(p=>p.id===keepId)||DB.profiles.find(p=>p.id===DB.active)||DB.profiles[0]||newProfile();if(DB.profiles.length)applyProfile(S);try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}}
+function refreshView(){const vis=[...document.querySelectorAll('#app>section')].find(e=>!e.hidden),id=vis&&vis.id;if(!DB.profiles.length){openProfEdit(null,true);return;}
+  if(id==='profiles'||id==='profEdit')renderProfiles();else if(id==='home')renderHome();else if(id==='library')renderLibrary();}
 
 /* ---------- duo ---------- */
 
@@ -1597,10 +1625,10 @@ $('#peName').addEventListener('input',renderPE);
 $('#peInst').onclick=e=>{const b=e.target.closest('button');if(!b)return;const v=b.dataset.v,i=PE.insts.indexOf(v);if(i>=0){if(PE.insts.length>1)PE.insts.splice(i,1);}else PE.insts.push(v);renderPE();};
 $('#peBack').onclick=()=>show(DB.profiles.length?'profiles':'home');
 $('#peSave').onclick=()=>{const name=$('#peName').value.trim();if(!name){$('#peErr').hidden=false;$('#peErr').textContent='Écris un prénom pour ce musicien.';$('#peName').focus();return;}
-  const insts=['cello','piano','guitar'].filter(i=>PE.insts.includes(i));let p=PE.p;if(p){Object.assign(p,{name,avatar:PE.avatar,color:PE.color,insts,inst:insts.includes(p.inst)?p.inst:insts[0]});}else{p=newProfile({name,avatar:PE.avatar,color:PE.color,insts,inst:insts[0]});DB.profiles.push(p);}
+  const insts=['cello','piano','guitar'].filter(i=>PE.insts.includes(i));let p=PE.p;if(p){p.upd=Date.now();Object.assign(p,{name,avatar:PE.avatar,color:PE.color,insts,inst:insts.includes(p.inst)?p.inst:insts[0]});}else{p=newProfile({name,avatar:PE.avatar,color:PE.color,insts,inst:insts[0]});DB.profiles.push(p);}
   applyProfile(p);save();show('home');};
 $('#peDel').onclick=()=>{const b=$('#peDel');if(!b.dataset.c){b.dataset.c='1';b.textContent='Sûr ? Ses étoiles et son trésor seront perdus. Toucher encore';setTimeout(()=>{b.dataset.c='';b.textContent='Supprimer ce musicien';},4000);return;}
-  DB.profiles=DB.profiles.filter(x=>x!==PE.p);if(DB.active===PE.p.id)applyProfile(DB.profiles[0]);save();show('profiles');};
+  DB.delProf=DB.delProf||{};DB.delProf[PE.p.id]=Date.now();DB.profiles=DB.profiles.filter(x=>x!==PE.p);if(DB.active===PE.p.id)applyProfile(DB.profiles[0]);save();show('profiles');};
 
 /* ---------- éditeur ---------- */
 let ED=null;
@@ -1640,13 +1668,13 @@ $('#edBack').onclick=()=>{stopListen();const from=ED&&ED.from;edLeave();if(from=
 $('#edSave').onclick=()=>{edMeta();const err=$('#edErr');if(!ED.title){err.hidden=false;err.textContent='Donne un titre à ton morceau.';$('#edTitle').focus();return;}
   if(ED.notes.filter(n=>n.m!=null).length<2){err.hidden=false;err.textContent='Ajoute au moins deux notes.';return;}err.hidden=true;
   if(ED.hand==='left')edSwap('right');
-  const song=cleanSong({left:ED.left&&ED.left.some(n=>n.m!=null)?ED.left.map(n=>({m:n.m,d:n.d})):undefined,id:ED.id||('c'+Date.now()),title:ED.title,bpm:ED.bpm,bpb:ED.bpb,pickup:ED.pickup,partBars:ED.partBars,notes:ED.notes.map(n=>({m:n.m,d:n.d})),custom:true,inst:ED.inst||INST.id,cat:($('#edCat').value||'').trim().slice(0,24)||undefined,spotify:spotParse($('#edSpot').value)?$('#edSpot').value.trim():undefined,added:(ED.id&&songById(ED.id)&&songById(ED.id).added)||Date.now()});
+  const song=cleanSong({left:ED.left&&ED.left.some(n=>n.m!=null)?ED.left.map(n=>({m:n.m,d:n.d})):undefined,id:ED.id||('c'+Date.now()),title:ED.title,bpm:ED.bpm,bpb:ED.bpb,pickup:ED.pickup,partBars:ED.partBars,notes:ED.notes.map(n=>({m:n.m,d:n.d})),custom:true,inst:ED.inst||INST.id,cat:($('#edCat').value||'').trim().slice(0,24)||undefined,spotify:spotParse($('#edSpot').value)?$('#edSpot').value.trim():undefined,added:(ED.id&&songById(ED.id)&&songById(ED.id).added)||Date.now(),upd:Date.now()});
   song.by=(songById(song.id)&&songById(song.id).by)||S.name;award('compo');const i=DB.custom.findIndex(x=>x.id===song.id);if(i>=0){DB.custom[i]=song;}else DB.custom.push(song);save();stopListen();const from=ED.from;edLeave();
   if(from==='library'||!DB.profiles.length){show(DB.profiles.length?'library':'home');return;}
   if(song.inst!==INST.id){if(S.insts&&S.insts.includes(song.inst)){S.inst=song.inst;INST=INSTS[song.inst];save();}else{show('home');return;}}CUR=song;show('songScr');};
 
 (function boot(){const go=()=>{if(!DB.profiles.length){openProfEdit(null,true);return;}applyProfile(S);show('profiles');};go();
-  if(SYNC.repo&&SYNC.token)ghPull().then(r=>{if(!(r&&r.loaded))return;const vis=[...document.querySelectorAll('#app>section')].find(e=>!e.hidden);const id=vis&&vis.id;
+  if(SYNC.repo&&SYNC.token)ghPull().then(r=>{if(r&&r.loaded)refreshView();if(r&&r.merged)schedulePush();return;const vis=[...document.querySelectorAll('#app>section')].find(e=>!e.hidden);const id=vis&&vis.id;
     if(!DB.profiles.length){openProfEdit(null,true);return;}if(id==='profiles'||id==='profEdit')show('profiles');else if(id==='home')renderHome();}).catch(()=>{});})();
 })();
 </script>
