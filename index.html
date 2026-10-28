@@ -241,10 +241,12 @@ input[type=range]{width:100%;accent-color:var(--gold)}
 
 /* Game */
 #game{position:fixed;inset:0;display:flex;flex-direction:column;background:linear-gradient(180deg,#071521 0%,#0c2335 60%,#12324a 100%);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);z-index:5;touch-action:none;user-select:none;-webkit-user-select:none}
-.hud{display:flex;align-items:center;gap:10px;padding:10px max(14px,env(safe-area-inset-right,0px)) 6px max(14px,env(safe-area-inset-left,0px));max-width:560px;width:100%;margin:0 auto;box-sizing:border-box}
-.hud .score{font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums;min-width:0}
-.hud .combo{font-weight:600;color:var(--gold);font-variant-numeric:tabular-nums}
-.hud .hear{margin-left:auto;padding:5px 10px;border-radius:999px;background:#0b2233;font-size:.85rem;font-weight:600;color:var(--mist);white-space:nowrap}
+.hud{display:flex;flex-wrap:nowrap;align-items:center;gap:10px;height:58px;flex:none;overflow:hidden;padding:6px max(14px,env(safe-area-inset-right,0px)) 4px max(14px,env(safe-area-inset-left,0px));max-width:760px;width:100%;margin:0 auto;box-sizing:border-box}
+.hud>div{min-width:0;flex:0 1 auto;overflow:hidden}
+.hud .pausebtn,.hud .handbtn{flex:none}
+.hud .score{font-size:1.4rem;line-height:1.1;font-weight:700;font-variant-numeric:tabular-nums;min-width:0;white-space:nowrap}
+.hud .combo{font-weight:600;color:var(--gold);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hud .hear{margin-left:auto;flex:0 0 13.5em;max-width:46%;text-align:center;padding:5px 10px;border-radius:999px;background:#0b2233;font-size:.85rem;font-weight:600;color:var(--mist);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-sizing:border-box}
 .hud .hear.ok{background:var(--kelp);color:#08301a}
 .pausebtn{width:42px;height:42px;border-radius:50%;background:#0b2233;display:grid;place-items:center;flex:none}
 .progress{height:6px;background:#0b2233;margin:0 auto;width:calc(100% - 28px);max-width:532px;border-radius:3px;overflow:hidden}
@@ -317,7 +319,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
 <section id="profiles" class="menu" hidden>
   <button class="gear" id="toSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1L15 3.5h-4L10.7 6a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
   <div class="mhead"><h1>L’Île aux Notes</h1><p class="muted">Qui joue aujourd’hui ?</p></div>
-  <p class="ver">version 28.10 · 19h50</p>
+  <p class="ver">version 28.10 · 20h</p>
   <div class="pgrid" id="profList"></div>
 </section>
 <section id="profEdit" class="screen" hidden>
@@ -895,6 +897,7 @@ $('#delSong').onclick=()=>{const b=$('#delSong');if(!b.dataset.c){b.dataset.c='1
 const CV=$('#cv'),CTX=CV.getContext('2d');let DPR=1,G=null,WL=null;
 function resizeCanvas(){const r=$('#cvwrap').getBoundingClientRect();DPR=Math.min(2,window.devicePixelRatio||1);CV.width=Math.max(1,r.width*DPR);CV.height=Math.max(1,r.height*DPR);CTX.setTransform(DPR,0,0,DPR,0,0);}
 window.addEventListener('resize',()=>{if(G&&G.running)resizeCanvas();});
+try{new ResizeObserver(()=>{if(G&&G.running)resizeCanvas();}).observe($('#cvwrap'));}catch(e){}
 async function wake(){try{WL=await navigator.wakeLock.request('screen');}catch(e){WL=null;}}
 function unwake(){try{WL&&WL.release();}catch(e){}WL=null;}
 const RANGE={cello:[36,62],guitar:[40,76],piano:[48,84]};
