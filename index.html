@@ -342,7 +342,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
   <button class="gear" id="toSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1L15 3.5h-4L10.7 6a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
   <div class="mhead"><h1>L’Île aux Notes</h1><p class="muted">Qui joue aujourd’hui ?</p></div>
   <div class="a2hs" id="a2hs" hidden><span class="a2i">📺</span><span class="a2t"><b>Plein écran pour AirPlay</b><br>Dans Safari : <b>Partager</b> <span class="shr">⬆︎</span> → <b>Sur l’écran d’accueil</b>, puis ouvre l’app depuis sa nouvelle icône : plus de barre d’adresse ni de favoris.</span><button class="a2x" id="a2hsX" aria-label="Fermer">✕</button></div>
-  <p class="ver">version 29.10 · 12h</p>
+  <p class="ver">version 29.10 · 18h45</p>
   <div class="pgrid" id="profList"></div>
 </section>
 <section id="profEdit" class="screen" hidden>
@@ -644,11 +644,11 @@ const COLORS=['#e8846a','#f4b43a','#62b6de','#8fd16a','#c79bf2','#f28fb6','#7fe0
 const FING=['0','x1','1','2','3','4','ext'];
 const INSTS={
  cello:{id:'cello',name:'Violoncelle',mine:'Mon violoncelle',ready:'Prépare ton archet…',lanes:['Do','Sol','Ré','La'],open:[36,43,50,57],tuner:true,
-  place(m){for(let s=3;s>=0;s--){const d=m-this.open[s];if(d>=0){if(d<=6)return{s,f:FING[d]};if(s===3)return{s:3,f:'↑'};}}return{s:0,f:'?'};},
+  place(m){while(m<this.open[0])m+=12;for(let s=3;s>=0;s--){const d=m-this.open[s];if(d>=0){if(d<=6)return{s,f:FING[d]};if(s===3)return{s:3,f:'↑'};}}return{s:0,f:'?'};},
   laneLabel:l=>'corde '+l,hint(e){return e.name+' · corde '+this.lanes[e.lane]+' · doigt '+e.f;},
   grid(){return{cols:this.lanes.map((n,i)=>({t:'corde '+n,c:COLORS[i]})),rows:['vide','½ pos.','doigt 1','doigt 2','doigt 3','doigt 4','ext.'].map((l,r)=>({l,cells:this.open.map((o,i)=>({m:o+r,c:COLORS[i]}))}))};}},
  guitar:{id:'guitar',name:'Guitare',mine:'Ma guitare',ready:'Prépare tes doigts…',lanes:['Mi','La','Ré','Sol','Si','mi'],open:[40,45,50,55,59,64],tuner:true,
-  place(m){for(let s=5;s>=0;s--){const d=m-this.open[s];if(d>=0&&(d<=4||s===5))return{s,f:String(d)};}return{s:0,f:'?'};},
+  place(m){while(m<this.open[0])m+=12;for(let s=5;s>=0;s--){const d=m-this.open[s];if(d>=0&&(d<=4||s===5))return{s,f:String(d)};}return{s:0,f:'?'};},
   laneLabel:l=>l,hint(e){return e.name+' · corde '+this.lanes[e.lane]+' · '+(e.f==='0'?'à vide':'case '+e.f);},
   grid(){return{cols:this.lanes.map((n,i)=>({t:n,c:COLORS[i]})),rows:['vide','case 1','case 2','case 3','case 4'].map((l,r)=>({l,cells:this.open.map((o,i)=>({m:o+r,c:COLORS[i]}))}))};}},
  piano:{id:'piano',name:'Piano',mine:'Mon piano',ready:'Place tes mains…',lanes:['Do','Ré','Mi','Fa','Sol','La','Si'],tuner:false,
@@ -948,7 +948,7 @@ function unwake(){}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)keepAwake();});
 const RANGE={cello:[36,62],guitar:[40,76],piano:[48,84]};
 function fitShift(inst,notes){const ms=notes.filter(n=>n.m!=null).map(n=>n.m);if(!ms.length)return 0;const [lo,hi]=RANGE[inst.id];let best=0,bs=1e9;
-  for(const k of [0,12,-12,24,-24]){let bad=0;for(const m of ms){const x=m+k;if(x<lo||x>hi)bad++;}const sc=bad*10+Math.abs(k)/12;if(sc<bs){bs=sc;best=k;}}return best;}
+  for(const k of [0,12,-12,24,-24,36,-36,48,-48]){let bad=0;for(const m of ms){const x=m+k;if(x<lo||x>hi)bad++;}const sc=bad*10+Math.abs(k)/12;if(sc<bs){bs=sc;best=k;}}return best;}
 function micHelp(){const ios=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);const safari=/Safari/.test(navigator.userAgent)&&!/CriOS|FxiOS|EdgiOS|Brave/i.test(navigator.userAgent)&&!(navigator.brave);
   if(MIC.err==='unsupported')return 'Ce navigateur ne donne pas accès au micro aux sites web.'+(ios?' Sur iPhone et iPad, ouvre le jeu dans Safari (ou depuis son icône sur l\'écran d\'accueil ajoutée avec Safari).':' Essaie Chrome, Edge ou Safari.')+' Sinon, joue au toucher.';
   if(MIC.err==='NotAllowedError'||MIC.err==='SecurityError')return 'L\'accès au micro a été refusé.'+(ios?' Va dans Réglages de l\'iPhone → '+(safari?'Safari → Microphone':'ton navigateur (par exemple Brave) → Microphone')+' et autorise-le, puis recharge la page.':' Autorise le micro pour ce site (icône à gauche de l\'adresse), puis recharge la page.')+(ios&&!safari?' Si l\'option n\'existe pas, ce navigateur ne gère pas le micro : utilise Safari.':'');
@@ -958,7 +958,7 @@ let SYNC_AT=null;
 async function startGame(partIdx,syncAt){SYNC_AT=syncAt||null;
   stopListen();ac();
   if(S.set.input==='mic'){const ok=await startMic();if(!ok){$('#micNotice').hidden=false;$('#micNoticeTxt').textContent=micHelp();window.scrollTo({top:0,behavior:'smooth'});return;}}
-  const song=CUR;runGame({syncAt:SYNC_AT,song,partIdx,hand:S.set.hand,looping:!!S.set.loop,players:[{p:S,inst:INST,shift:0}],kind:'solo',mode:S.set.mode,input:S.set.input,metro:S.set.metro,guide:S.set.guide,bpm:Math.round(song.bpm*pct(song))});
+  const song=CUR;const shift0=INST.id==='piano'?0:fitShift(INST,song.notes);runGame({syncAt:SYNC_AT,song,partIdx,hand:S.set.hand,looping:!!S.set.loop,players:[{p:S,inst:INST,shift:shift0}],kind:'solo',mode:S.set.mode,input:S.set.input,metro:S.set.metro,guide:S.set.guide,bpm:Math.round(song.bpm*pct(song))});
 }
 async function startDuo(song){
   stopListen();ac();const D=DB.duo;
@@ -993,9 +993,9 @@ function runGame(o){
   G.loop=++LOOPID;const id=G.loop;show('game');resizeCanvas();wake();requestAnimationFrame(t=>frame(t,id));
 }
 let LOOPID=0;
-function loopRestart(old){let syncAt;if(old.syncAt){const L=Math.ceil((old.endBeat-old.barRef)/old.bpb-1e-6)*old.bpb+old.barRef-old.beat0;syncAt=old.syncAt+(L+old.bpb)*old.spb*1000;}runGame({syncAt,song:old.song,partIdx:old.partIdx,hand:old.hand,players:[{p:S,inst:old.inst,shift:0}],kind:'solo',mode:old.calm?'calm':old.mode,input:old.input,metro:old.metro,guide:old.guide,bpm:old.bpm,loopFrom:old});G.running=true;wake();}
+function loopRestart(old){let syncAt;if(old.syncAt){const L=Math.ceil((old.endBeat-old.barRef)/old.bpb-1e-6)*old.bpb+old.barRef-old.beat0;syncAt=old.syncAt+(L+old.bpb)*old.spb*1000;}runGame({syncAt,song:old.song,partIdx:old.partIdx,hand:old.hand,players:[{p:S,inst:old.inst,shift:old.players[0].shift||0}],kind:'solo',mode:old.calm?'calm':old.mode,input:old.input,metro:old.metro,guide:old.guide,bpm:old.bpm,loopFrom:old});G.running=true;wake();}
 function switchHand(){if(!G||!G.running||!G.canHand)return;const old=G,nh=old.hand==='left'?'right':'left';S.set.hand=nh;save();
-  runGame({song:old.song,partIdx:old.partIdx,players:[{p:S,inst:old.inst,shift:0}],kind:'solo',mode:old.calm?'calm':old.mode,input:old.input,metro:old.metro,guide:old.guide,bpm:old.bpm,hand:nh,keep:old});}
+  runGame({song:old.song,partIdx:old.partIdx,players:[{p:S,inst:old.inst,shift:old.players[0].shift||0}],kind:'solo',mode:old.calm?'calm':old.mode,input:old.input,metro:old.metro,guide:old.guide,bpm:old.bpm,hand:nh,keep:old});}
 function frame(ts,id){if(!G||!G.running||id!==G.loop)return;const dt=Math.min(.05,(ts-G.lastTs)/1000);G.lastTs=ts;
   if(!G.paused){if(G.input==='mic')analyze(ts);step(dt,ts);}
   draw(dt);hud();if(G&&G.running)requestAnimationFrame(t=>frame(t,id));}
