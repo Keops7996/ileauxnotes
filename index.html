@@ -117,6 +117,7 @@ p{margin:0}
 .pager{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .addgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .addgrid .field:first-child{grid-column:1 / -1}
+.dtrow{display:flex;gap:6px}.dtrow input{min-width:0}.dtrow #addDate{flex:1.6}.dtrow #addTime{flex:1}
 .setgate{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--sea);z-index:2}
 .setgate .box{background:var(--deck);border-radius:18px;padding:20px;width:100%;max-width:340px;display:flex;flex-direction:column;gap:10px}
 .setgate input{background:#0b2233;border:1px solid var(--deck-2);border-radius:10px;padding:10px 12px;font-size:1.3rem;color:var(--foam);text-align:center}
@@ -343,7 +344,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
   <button class="gear" id="toSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1L15 3.5h-4L10.7 6a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
   <div class="mhead"><h1>L’Île aux Notes</h1><p class="muted">Qui joue aujourd’hui ?</p></div>
   <div class="a2hs" id="a2hs" hidden><span class="a2i">📺</span><span class="a2t"><b>Plein écran pour AirPlay</b><br>Dans Safari : <b>Partager</b> <span class="shr">⬆︎</span> → <b>Sur l’écran d’accueil</b>, puis ouvre l’app depuis sa nouvelle icône : plus de barre d’adresse ni de favoris.</span><button class="a2x" id="a2hsX" aria-label="Fermer">✕</button></div>
-  <p class="ver">version 29.10 · 21h00</p>
+  <p class="ver">version 29.10 · 21h50</p>
   <div class="pgrid" id="profList"></div>
 </section>
 <section id="profEdit" class="screen" hidden>
@@ -481,7 +482,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
         <h3>Ajouter une performance</h3>
         <div class="addgrid">
           <div class="field"><label class="label" for="addWhat">Activité</label><input id="addWhat" maxlength="40" placeholder="Cours, concert, entraînement libre…"></div>
-          <div class="field"><label class="label" for="addDate">Date</label><input id="addDate" type="date"></div>
+          <div class="field"><label class="label" for="addDate">Date et heure</label><div class="dtrow"><input id="addDate" type="date"><input id="addTime" type="time" aria-label="Heure"></div></div>
           <div class="field"><label class="label" for="addMin">Minutes</label><input id="addMin" type="number" min="0" max="600" value="15" inputmode="numeric"></div>
           <div class="field"><label class="label" for="addPts">Points</label><input id="addPts" type="number" min="0" max="5000" value="20" inputmode="numeric"></div>
         </div>
@@ -717,6 +718,8 @@ function weekKey(d=new Date()){const x=new Date(d);x.setDate(x.getDate()-((x.get
 function weekPts(p){const k=weekKey();if(!p.week||p.week.k!==k){const lw=new Date();lw.setDate(lw.getDate()-7);const prev=p.week&&p.week.k===weekKey(lw)?p.week.pts:0;p.week={k,pts:0,prev};}return p.week;}
 function shade(h,k){const n=parseInt(h.slice(1),16);const f=x=>Math.round(x*k).toString(16).padStart(2,'0');return'#'+f(n>>16)+f((n>>8)&255)+f(n&255);}
 function applyProfile(p){S=p;try{const h=p.hs||{};HS.cat=h.cat||'';HS.sort=h.sort||'played';HS.q='';}catch(e){}DB.active=p.id;INST=INSTS[p.inst]||INSTS.cello;const r=document.documentElement.style;r.setProperty('--gold',p.color);r.setProperty('--gold-2',shade(p.color,.75));save(false);}
+function hhmm(d){return String(d.getHours()).padStart(2,'0')+'h'+String(d.getMinutes()).padStart(2,'0');}
+function dayPts(p){const t=today();return(p.hist||[]).reduce((s,h)=>s+(today(new Date(h.d))===t?(h.pts||0):0),0);}
 function today(d=new Date()){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function yesterday(){const d=new Date();d.setDate(d.getDate()-1);return today(d);}
 INST=INSTS[S.inst]||INSTS.cello;
@@ -875,7 +878,7 @@ function renderHome(){
   $('#meAv').textContent=S.avatar;$('#meAv').style.background=S.color;$('#meName').textContent=S.name||'Pirate';setSeg($('#segInst'),INST.id);[...$('#segInst').children].forEach(b=>b.hidden=!S.insts.includes(b.dataset.v));$('#segInst').style.gridTemplateColumns='repeat('+S.insts.length+',1fr)';$('#instBox').hidden=S.insts.length<2;$('#toTuner').hidden=!INST.tuner;
   const st=(S.streak.last===today()||S.streak.last===yesterday())?S.streak.n:0;
   $('#stStreak').textContent=st;$('#stStreakTxt').textContent=st>1?'jours de suite':'jour';
-  {const wp=weekPts(S);$('#stCoins').textContent=S.coins;$('#stWeekTxt').textContent='+'+wp.pts+' cette semaine'+(wp.prev?' · '+wp.prev+' la semaine passée':'');}
+  {const wp=weekPts(S);$('#stCoins').textContent=S.coins;$('#stWeekTxt').textContent='+'+dayPts(S)+' aujourd\'hui · +'+wp.pts+' cette semaine'+(wp.prev?' · '+wp.prev+' la semaine passée':'');}
   const {r,nx}=rankOf(S.coins);$('#stRank').textContent=r[1];
   $('#rankFill').style.width=nx?Math.round((S.coins-r[0])/(nx[0]-r[0])*100)+'%':'100%';
   $('#stNext').textContent=nx?'encore '+(nx[0]-S.coins):'rang max !';
@@ -1319,22 +1322,22 @@ function setP(){return DB.profiles.find(p=>p.id===SET.pid);}
 function renderSettings(){const P=$('#setProf');P.innerHTML='';DB.profiles.forEach(p=>{const b=document.createElement('button');if(p.id===SET.pid)b.className='on';b.innerHTML='<span class="av"></span><span></span>';
     b.querySelector('.av').textContent=p.avatar;b.querySelector('.av').style.background=p.color;b.lastChild.textContent=p.name||'Pirate';b.onclick=()=>{SET.pid=p.id;SET.page=0;renderSettings();};P.appendChild(b);});
   const p=setP();if(!p)return;const H=p.hist||[];const pages=Math.max(1,Math.ceil(H.length/SET.per));SET.page=Math.min(SET.page,pages-1);
-  $('#histInfo').textContent=p.coins+' points au total · +'+weekPts(p).pts+' cette semaine';
+  $('#histInfo').textContent=p.coins+' points au total · +'+dayPts(p)+' aujourd\'hui · +'+weekPts(p).pts+' cette semaine';
   const L=$('#histList');L.innerHTML='';const slice=H.slice(SET.page*SET.per,(SET.page+1)*SET.per);
   if(!H.length)L.innerHTML='<p class="muted small">Aucune performance enregistrée pour l\'instant.</p>';
   slice.forEach(h=>{const r=document.createElement('div');r.className='hrow'+(h.manual?' man':'');const d=new Date(h.d);
     r.innerHTML='<span class="hd"></span><span class="ht"></span><span class="hp"></span><button class="hx">Retirer</button>';
-    r.querySelector('.hd').textContent=d.toLocaleDateString('fr-BE',{day:'2-digit',month:'2-digit'});
+    r.querySelector('.hd').textContent=(today(d)===today()?'auj.':d.toLocaleDateString('fr-BE',{day:'2-digit',month:'2-digit'}))+' · '+hhmm(d);
     r.querySelector('.ht').textContent=h.t+(h.st!=null?' · '+'★'.repeat(h.st)+'☆'.repeat(3-h.st):'')+(h.sec?' · '+Math.max(1,Math.round(h.sec/60))+' min':'');
     r.querySelector('.hp').textContent='+'+h.pts;
     const x=r.querySelector('.hx');x.onclick=()=>{if(!x.classList.contains('c')){x.classList.add('c');x.textContent='Sûr ?';setTimeout(()=>{x.classList.remove('c');x.textContent='Retirer';},3000);return;}removeHist(p,h);};L.appendChild(r);});
   $('#histPage').textContent=H.length?('page '+(SET.page+1)+' / '+pages):'';$('#histPrev').disabled=SET.page===0;$('#histNext').disabled=SET.page>=pages-1;
-  if(!$('#addDate').value)$('#addDate').value=today();}
+  if(!$('#addDate').value)$('#addDate').value=today();if(!$('#addTime').value)$('#addTime').value=hhmm(new Date()).replace('h',':');}
 function removeHist(p,h){p.hist=p.hist.filter(x=>x.id!==h.id);p.coins=Math.max(0,p.coins-(h.pts||0));const w=weekPts(p);if(weekKey(new Date(h.d))===w.k)w.pts=Math.max(0,w.pts-(h.pts||0));
   if(h.sec&&p.time){const k=dayOf(h.d);if(p.time[k]){p.time[k]-=h.sec;if(p.time[k]<=0)delete p.time[k];}}save();renderSettings();}
 $('#histPrev').onclick=()=>{SET.page--;renderSettings();};$('#histNext').onclick=()=>{SET.page++;renderSettings();};
 $('#addBtn').onclick=()=>{const p=setP();if(!p)return;const pts=Math.max(0,Math.round(+$('#addPts').value||0)),min=Math.max(0,Math.round(+$('#addMin').value||0));const ds=$('#addDate').value||today();
-  const [y,m,dd]=ds.split('-').map(Number);const d=new Date(y,m-1,dd,12);if(d>new Date()){$('#addMsg').textContent='Choisis une date passée ou aujourd\'hui.';$('#addMsg').style.color='var(--coral)';return;}
+  const [y,m,dd]=ds.split('-').map(Number),tm=($('#addTime').value||'').split(':').map(Number);const d=new Date(y,m-1,dd,tm.length===2&&!isNaN(tm[0])?tm[0]:12,tm.length===2&&!isNaN(tm[1])?tm[1]:0);if(d>new Date()){$('#addMsg').textContent='Choisis une date et une heure déjà passées.';$('#addMsg').style.color='var(--coral)';return;}
   if(!pts&&!min){$('#addMsg').textContent='Indique des minutes ou des points.';$('#addMsg').style.color='var(--coral)';return;}
   p.hist=p.hist||[];const h={id:'h'+Date.now(),d:d.toISOString(),t:$('#addWhat').value.trim()||'Séance libre',pts,sec:min*60,manual:true};p.hist.push(h);p.hist.sort((a,b)=>b.d<a.d?-1:1);
   p.coins+=pts;const w=weekPts(p);if(weekKey(d)===w.k)w.pts+=pts;if(min){p.time=p.time||{};p.time[ds]=(p.time[ds]||0)+min*60;}save();
