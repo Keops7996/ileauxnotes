@@ -361,7 +361,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
   <button class="gear" id="toSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1L15 3.5h-4L10.7 6a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
   <div class="mhead"><h1>L’Île aux Notes</h1><p class="muted">Qui joue aujourd’hui ?</p></div>
   <div class="a2hs" id="a2hs" hidden><span class="a2i">📺</span><span class="a2t"><b>Plein écran pour AirPlay</b><br>Dans Safari : <b>Partager</b> <span class="shr">⬆︎</span> → <b>Sur l’écran d’accueil</b>, puis ouvre l’app depuis sa nouvelle icône : plus de barre d’adresse ni de favoris.</span><button class="a2x" id="a2hsX" aria-label="Fermer">✕</button></div>
-  <p class="ver">version 29.10 · 22h15</p>
+  <p class="ver">version 29.10 · 22h30</p>
   <div class="pgrid" id="profList"></div>
 </section>
 <section id="profEdit" class="screen" hidden>
@@ -416,7 +416,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
   </div>
   <div class="panel">
     <div><span class="label">Mode</span>
-      <div class="seg seg3" id="segMode" style="margin-top:6px"><button data-v="calm">Douceur<small>sans points</small></button><button data-v="wait">Entraînement<small>le jeu attend la note</small></button><button data-v="rhythm">Défi<small>en rythme</small></button></div></div>
+      <div class="seg seg3" id="segMode" style="margin-top:6px"><button data-v="calm">Douceur<small>sans points</small></button><button data-v="wait">Entraînement<small>le jeu attend la note</small></button><button data-v="rhythm">Défi<small>en rythme · bonus</small></button></div></div>
     <div id="handBox" hidden><span class="label">Main</span><div class="seg" id="segHand" style="margin-top:6px"><button data-v="right">Main droite<small>clé de sol</small></button><button data-v="left">Main gauche<small>clé de fa</small></button></div></div>
     <div><span class="label">Affichage</span><div class="seg" id="segView" style="margin-top:6px"><button data-v="fall">Chute<small>les notes tombent</small></button><button data-v="score">Partition<small>la vraie portée</small></button></div></div>
     <div class="toggle"><div><b>Je joue avec</b><p class="small muted" id="inputTxt">le micro écoute mon instrument</p></div><button class="btn small" id="inputBtn">🎤 Micro</button></div>
@@ -559,7 +559,7 @@ textarea{min-height:90px;font-family:ui-monospace,Menlo,Consolas,monospace;font-
   <div><span class="label">Choisis 2 musiciens</span><div class="duopick" id="duoPick" style="margin-top:8px"></div></div>
   <div class="panel">
     <div><span class="label">Comment jouer</span><div class="seg" id="duoKind" style="margin-top:6px"><button data-v="relay">Chacun son tour<small>2 mesures chacun</small></button><button data-v="ensemble">Ensemble<small>les mêmes notes</small></button></div></div>
-    <div><span class="label">Mode</span><div class="seg seg3" id="duoMode" style="margin-top:6px"><button data-v="calm">Douceur<small>sans points</small></button><button data-v="wait">Entraînement<small>le jeu attend</small></button><button data-v="rhythm">Défi<small>en rythme</small></button></div></div>
+    <div><span class="label">Mode</span><div class="seg seg3" id="duoMode" style="margin-top:6px"><button data-v="calm">Douceur<small>sans points</small></button><button data-v="wait">Entraînement<small>le jeu attend</small></button><button data-v="rhythm">Défi<small>en rythme · bonus</small></button></div></div>
     <div><span class="label">On joue avec</span><div class="seg" id="duoInput" style="margin-top:6px"><button data-v="mic">Nos instruments<small>le micro écoute</small></button><button data-v="tap">L'écran<small>chacun sa moitié</small></button></div></div>
     <p class="small muted" id="duoTip"></p>
     <div><span class="label">Tempo</span><div class="chips" id="duoTempo" style="margin-top:6px"><button class="chip" data-p="0.5">Lent · 50 %</button><button class="chip" data-p="0.75">Moyen · 75 %</button><button class="chip" data-p="1">Rapide · 100 %</button></div></div>
@@ -928,7 +928,7 @@ $('#testSnd').onclick=()=>{unlockAudio();[50,54,57].forEach((m,i)=>tone(m,.5,i*.
 /* ---------- écran morceau ---------- */
 function setSeg(el,v){el.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));}
 function renderSong(){const s=CUR;$('#sgTitle').textContent=s.title;try{renderSpot(s);}catch(e){}$('#sgSub').textContent=s.sub||'Ta partition';
-  setSeg($('#segMode'),S.set.mode);{const mic=S.set.input==='mic';$('#inputBtn').textContent=mic?'🎤 Micro':'👆 Écran';$('#inputTxt').textContent=mic?'le micro écoute ton instrument':'tu touches les cordes à l\'écran';}setSeg($('#segView'),S.set.view||'fall');
+  setSeg($('#segMode'),S.set.mode);{const mic=S.set.input==='mic';$('#inputBtn').textContent=mic?'🎤 Micro':'👆 Écran';$('#inputTxt').textContent=mic?'le micro écoute ton instrument · tous les points':'tu touches les cordes à l\'écran · un peu moins de points';}setSeg($('#segView'),S.set.view||'fall');
   $('#micNotice').hidden=true;
   updTempo();
   $('#swMetro').setAttribute('aria-checked',S.set.metro);$('#swSync').setAttribute('aria-checked',!!S.set.sync);$('#swLoop').setAttribute('aria-checked',!!S.set.loop);$('#swCount').setAttribute('aria-checked',S.set.countIn!==false);$('#countRow').hidden=!S.set.loop;
@@ -1270,9 +1270,14 @@ function finishCalm(quiet){G.running=false;unwake();logGameTime();const td=today
   if(quiet){banner('Tour '+G.round+' · bravo !');return;}
   $('#resBack').textContent=G.duo?'Retour au duo':'Retour au morceau';show('results');banner('Bravo !');}
 
+/* équilibrage : l'instrument est l'objectif (base), l'écran rapporte un peu moins, le Défi un bonus */
+const PTS_TAP=.75,PTS_DEFI=1.3;
+function ptsOf(score,stars){const base=Math.round(score/100)+stars*5;let k=1;if(G.input!=='mic')k*=PTS_TAP;if(G.mode==='rhythm')k*=PTS_DEFI;
+  const earned=Math.max(base>0?1:0,Math.round(base*k)),defi=G.mode==='rhythm'?Math.round(base*(G.input!=='mic'?PTS_TAP:1)*(PTS_DEFI-1)):0;return{earned,defi};}
+function ptsNote(defi){const d=defi>0?'⚔️ Bonus Défi : +'+defi+' point'+(defi>1?'s':'')+' pour avoir joué en rythme !':'';if(G.input!=='mic')return(d?d+'<br>':'')+'🎻 Avec ton instrument et le micro, chaque partie rapporte encore plus de points.';return d;}
 function finishDuo(){G.running=false;unwake();logGameTime();$('#resStars').hidden=false;$('#resG1').hidden=false;$('#resG2').hidden=false;const c=G.counts,tot=G.events.filter(e=>e.state!=='skip').length||1,acc=(c.perfect+.6*c.good)/tot;const stars=acc>=.95?3:acc>=.8?2:acc>=.5?1:0;const td=today();
   const lines=[];
-  G.players.forEach(pl=>{const p=pl.p;let earned=Math.round(pl.score/100)+stars*5;
+  G.players.forEach(pl=>{const p=pl.p;let earned=ptsOf(pl.score,stars).earned;
     if(p.streak.last!==td){p.streak.n=p.streak.last===yesterday()?p.streak.n+1:1;p.streak.last=td;}
     if(!p.daily||p.daily.date!==td)p.daily={date:td,plays:0,chest:false};p.daily.plays++;let chest=false;if(p.daily.plays>=3&&!p.daily.chest){p.daily.chest=true;chest=true;earned+=30;}
     p.coins+=earned;weekPts(p).pts+=earned;{const o=G.players.find(x=>x!==pl);addHist(p,{t:G.song.title+' · duo avec '+((o&&o.p.name)||'Pirate'),inst:pl.inst.id,sc:pl.score,st:stars,pts:earned,sec:Math.round((performance.now()-G.t0)/1000)});}p.games=(p.games||0)+1;
@@ -1292,7 +1297,7 @@ function finishDuo(){G.running=false;unwake();logGameTime();$('#resStars').hidde
 function finish(quiet){G.running=false;unwake();logTime((performance.now()-G.t0)/1000);$('#resStars').hidden=false;$('#resG1').hidden=false;$('#resG2').hidden=false;const c=G.counts,tot=G.events.filter(e=>e.state!=='skip').length||1,acc=(c.perfect+.6*c.good)/tot;const stars=acc>=.95?3:acc>=.8?2:acc>=.5?1:0;
   const id=G.song.id,pi=G.partIdx;S.best[id]=S.best[id]||{};const MK=mkey(id,pi,G.mode,G.hand);const prev=S.best[id][MK]||{stars:0,score:0};const record=G.score>prev.score&&prev.score>0;
   S.best[id][MK]={stars:Math.max(prev.stars,stars),score:Math.max(prev.score,G.score)};
-  const before=rankOf(S.coins).r[1];let earned=Math.round(G.score/100)+stars*5;let chest=false;
+  const before=rankOf(S.coins).r[1];const PT=ptsOf(G.score,stars);let earned=PT.earned;let chest=false;
   const td=today();if(S.streak.last!==td){S.streak.n=S.streak.last===yesterday()?S.streak.n+1:1;S.streak.last=td;}
   if(S.daily.date!==td)S.daily={date:td,plays:0,chest:false};S.daily.plays++;if(S.daily.plays>=3&&!S.daily.chest){S.daily.chest=true;chest=true;earned+=30;}
   S.coins+=earned;weekPts(S).pts+=earned;addHist(S,{t:G.song.title+(pi<getParts(G.song).length&&getParts(G.song).length>1?' · partie '+(pi+1):''),inst:INST.id,sc:G.score,st:stars,pts:earned,sec:Math.round((performance.now()-G.t0)/1000)});S.games=(S.games||0)+1;const after=rankOf(S.coins).r[1];save();
@@ -1303,7 +1308,7 @@ function finish(quiet){G.running=false;unwake();logTime((performance.now()-G.t0)
   $('#resSub').textContent=G.song.title+' · '+(pi<getParts(G.song).length?'Partie '+(pi+1):'Morceau entier')+' · '+(G.mode==='rhythm'?'Défi':'Entraînement')+' · '+G.bpm+' BPM';
   $('#rP').textContent=c.perfect;$('#rG').textContent=c.good;$('#rM').textContent=c.miss;$('#rS').textContent=G.score;$('#rC').textContent=G.maxCombo;$('#rA').textContent=Math.round(acc*100)+'%';
   const rs=$('#resStars');rs.innerHTML=STAR+STAR+STAR;
-  const lines=['<b>+'+earned+' points</b> · total '+S.coins+', cette semaine '+weekPts(S).pts];if(record)lines.push('Nouveau record !');if(chest)lines.push('Coffre du jour ouvert : +30 pièces');if(LAST.rankUp)lines.push('Nouveau rang : '+LAST.rankUp+' !');newB.forEach(b=>lines.push('<span class="newb"><span class="bi">'+b.i+'</span> Nouveau badge : <b>'+b.t+'</b></span>'));if(newB.length)setTimeout(()=>banner('Nouveau badge !'),200);
+  const lines=['<b>+'+earned+' points</b> · total '+S.coins+', cette semaine '+weekPts(S).pts];{const n=ptsNote(PT.defi);if(n)lines.push(n);}if(record)lines.push('Nouveau record !');if(chest)lines.push('Coffre du jour ouvert : +30 pièces');if(LAST.rankUp)lines.push('Nouveau rang : '+LAST.rankUp+' !');newB.forEach(b=>lines.push('<span class="newb"><span class="bi">'+b.i+'</span> Nouveau badge : <b>'+b.t+'</b></span>'));if(newB.length)setTimeout(()=>banner('Nouveau badge !'),200);
   if(stars===0)lines.push('Astuce : baisse le tempo à 50 % ou passe en mode Entraînement.');else if(G.mode==='wait'&&stars>=2)lines.push('Prêt pour le mode Défi, en rythme ?');
   $('#resLoot').innerHTML=lines.map(l=>'<span>'+l+'</span>').join('');
   const P=getParts(G.song);const nxt=pi+1;const hasNext=stars>=1&&(nxt<P.length||(nxt===P.length&&P.length>1&&P.every((_,k)=>(S.best[id]&&S.best[id][mkey(id,k,G.mode,G.hand)]||{stars:0}).stars>=1)));
